@@ -3,13 +3,13 @@ import React, {useState, useCallback} from 'react';
 import { Container, Form, WrapForm, DuplicateBtn, Input, LabelID, InputID, LabelPwd, InputPwd, LabelVerifyPwd, InputVerifyPwd, LabelName, InputName } from './signup-form-style';
 import { useRouter } from 'next/router';
 import Modal from 'react-modal'
+import { MdAlternateEmail } from 'react-icons/md';
 
 const SignUpForm = () => {
 
   const router = useRouter();
 
   const [duplication, setDuplication] = useState(false);
-
 
   const [person, setPerson] = useState({
     signup_id: '',
@@ -61,20 +61,91 @@ const SignUpForm = () => {
       return false;
     }
 
-    return true;
-  }
+    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/members", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": "http://54.180.68.142:8080",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: person.signup_id + "@konkuk.ac.kr",
+        password: person.signup_pwd,
+        nickname: person.signup_name
+      })
+    })
+    .then(response => response.json())
+    .then((response) => {
+      if((response.email === person.signup_id) && (response.nickname === person.signup_name)) {
+        router.push('./finishsignup');
+      }
+      else {
+        alert("회원가입에 실패했습니다. 아이디와 닉네임을 다시 확인해주세요.")
+      }
+    })
 
-  const handleSubmit2 = (e:any) => {
-    e.preventDefault();
-    setDuplication(!duplication);
     return true;
   }
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
+  const SendMail = () => {
+    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/mail/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": "http://54.180.68.142:8080",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: person.signup_id + "@konkuk.ac.kr"
+      })
+    })
+    .then(response => response.json())
+    .then((response) => {
+      response.message === '메일을 전송하였습니다.' ? setModalIsOpen(true) : alert("메일 전송실패. 아이디를 확인해주세요. 이미 가입된 사용자일 수 있습니다.")
+    })
+  }
+
+  const [codeObj, setCodeObj] = useState({
+    verify_code: ''
+  })
+
+  const handleInputCodeChange = (e:any) => {
+    setCodeObj({...codeObj, [e.target.name]: e.target.value})
+  }
+
+  const SendCode = () => {
+    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/mail/auth", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": "http://54.180.68.142:8080",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: person.signup_id + "@konkuk.ac.kr",
+        code: codeObj.verify_code
+      })
+    })
+    .then(response => response.json())
+    .then((response) => {
+      response.message === "인증 완료되었습니다." ? CheckDuplication() : alert("인증코드가 맞지 않습니다.")
+    })
+  }
+
+  const CheckDuplication = () => {
+    setDuplication(!duplication)
+    alert("중복확인이 완료되었습니다. 창을 닫아주십시요.")
+  }
+
+  const PreviousPage = () => {
+    router.push('./');
+  }
+
   return (
     <Container>
-      <Modal isOpen={modalIsOpen} style={{
+      <Modal isOpen={modalIsOpen} ariaHideApp={false} style={{
     overlay: {
       margin: 'auto',
       width: '700px',
@@ -85,23 +156,22 @@ const SignUpForm = () => {
   }} contentElement={
     (props, children) => 
     <div key={person.signup_id} style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "700px", height: "500px"}}> 
-    <form onSubmit={handleSubmit2}>
+    <form>
       <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "50px"}}>
         <button onClick={()=>setModalIsOpen(false)}>(임시)닫는 버튼</button>
         <p style={{color: "#b72929", textAlign: "left"}}>건국대 포털로 인증번호를 보냈습니다.<br/>인증번호를 입력해주세요.</p>
-        <input type="text" id="verify_code" name="verify_code" placeholder="" style={{borderTop: "none", borderLeft: "none", borderRight: "none", backgroundColor: "none", width: "250px"}}></input>
-        <Input type="submit" value="제출" style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px"}}></Input>
+        <input type="text" id="verify_code" name="verify_code" placeholder="" onChange={handleInputCodeChange} style={{borderTop: "none", borderLeft: "none", borderRight: "none", backgroundColor: "none", width: "250px"}}></input>
+        <Input type="button" value="제출" onClick={SendCode} style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px"}}></Input>
       </div>
-
     </form>
     </div>}
   >
       </Modal>
-      <Form onSubmit={handleSubmit} action="./finishsignup">
+      <Form>
         <WrapForm>
           <LabelID htmlFor="signup_id" id="signup_id_label">포탈 아이디</LabelID>
           <InputID type="text" id="signup_id" name="signup_id" placeholder="" value={person.signup_id} onChange={handleInputChange}></InputID>
-          <DuplicateBtn type="button" id="duplicate_check_btn" onClick={()=> setModalIsOpen(true)}>중복 확인</DuplicateBtn>
+          <DuplicateBtn type="button" id="duplicate_check_btn" onClick={SendMail}>중복 확인</DuplicateBtn>
           <LabelPwd htmlFor="signup_pwd" id="signup_pwd_label">비밀번호</LabelPwd>
           <InputPwd type="password" id="signup_pwd" name="signup_pwd" placeholder="" value={person.signup_pwd} onChange={handleInputChange}></InputPwd>
           <LabelVerifyPwd htmlFor="verify_pwd" id="verify_pwd_label">비밀번호 확인</LabelVerifyPwd>
@@ -110,8 +180,8 @@ const SignUpForm = () => {
           <InputName type="text" id="signup_name" name="signup_name" placeholder="" value={person.signup_name} onChange={handleInputChange}></InputName>
         </WrapForm>
         <div style={{display: "flex"}}>
-            <Input type="submit" value="등록" style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", display: "block", margin: "0 auto", fontWeight: "bold"}}></Input>
-            <button style={{width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", display: "block", margin: "0 auto", fontWeight: "bold"}}>취소</button>
+            <Input type="button" value="등록" onClick={handleSubmit} style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", display: "block", margin: "0 auto", fontWeight: "bold"}}></Input>
+            <button onClick={PreviousPage} style={{width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", display: "block", margin: "0 auto", fontWeight: "bold"}}>취소</button>
         </div>
       </Form>
     </Container>

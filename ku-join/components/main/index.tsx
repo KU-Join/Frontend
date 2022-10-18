@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ScrollContainer from 'react-indiana-drag-scroll';
 
 import {
@@ -52,15 +52,26 @@ type ClubItem = {
 };
 
 
-
-
-
 const MainLayout = () => {
   //확인했을 때 참여 중인 동아리가 0개일 때는 없다고 띄워주기 & 친구도 (+길어지면 스크롤)
   //마이크, 스피커 on/off에 따라 다른 아이콘
   //axios 활용해보기
 
+  //닉네임을 메인에 두고 싶으니까 여기서 user의 닉네임에 접근할 수 있도록 GET를 하면 좋겠다.
+
   const router = useRouter();
+
+  const Username:any = () => {
+
+    if (typeof window !== "undefined") {
+        const userToken = sessionStorage.getItem('token')
+        const userID = sessionStorage.getItem('id')
+    
+      return (
+        <UserName>{userID}</UserName>
+        )
+    }
+  }
 
   const handleClick = (e:any) => {
     e.preventDefault();
@@ -68,7 +79,7 @@ const MainLayout = () => {
   }
 
   const getProducts = async (): Promise<ClubMain> => {
-    return await (await fetch('https://gist.githubusercontent.com/serin301/456457c4020f794479b61a42a38ab942/raw/a1618f895bdc1d8066a9bce573c2ed6b195f7ac7/Club.json')).json();
+    return await (await fetch('https://gist.githubusercontent.com/serin301/456457c4020f794479b61a42a38ab942/raw/b727626950b7af051c0d56ec5297dd281153bc87/Club.json')).json();
   };
   
   
@@ -121,7 +132,7 @@ const MainLayout = () => {
         <WrapUserStatus>
           <UserProfile>
             <UserImg />
-            <UserName>unsigned</UserName>
+            <Username />
           </UserProfile>
           <UserStatus>
             <BsFillMicFill style={{ color: '#B9BBBE' }} />
