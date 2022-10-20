@@ -78,6 +78,11 @@ const MainLayout = () => {
     router.push("./");
   }
 
+  const MakeClubClick = (e:any) => {
+    e.preventDefault();
+    router.push("./makeclub")
+  }
+
   const getProducts = async (): Promise<ClubMain> => {
     return await (await fetch('https://gist.githubusercontent.com/serin301/456457c4020f794479b61a42a38ab942/raw/b727626950b7af051c0d56ec5297dd281153bc87/Club.json')).json();
   };
@@ -144,7 +149,7 @@ const MainLayout = () => {
       <Contents>
         <WrapTitle>
             <MainTitle>동아리 살펴보기</MainTitle>
-            <button style={{padding: "10px", backgroundColor: "#F1EEEE", borderRadius: "20px"}}>동아리 만들기</button>
+            <button style={{padding: "10px", backgroundColor: "#F1EEEE", borderRadius: "20px"}} onClick={MakeClubClick}>동아리 만들기</button>
         </WrapTitle>
         <ScrollContainer style={{height: "100vh"}} horizontal={false}>
             <WrapClubTypes style={{display: "flex", maxHeight: "400px", gap: "10px"}}>
