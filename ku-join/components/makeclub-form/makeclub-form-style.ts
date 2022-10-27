@@ -29,9 +29,10 @@ const WrapForm = styled.div`
   grid-template-areas: "leader_id_label leader_id ."
                       "club_name_label club_name ."
                       "club_category_label club_category ."
-                      "main_image_label main_image upload_btn";
+                      "main_image_label main_image main_image_label2"
+                      "club_description_label club_description club_description";
   grid-template-columns: 150px 150px 100px;
-  grid-template-rows: repeat(4, 30px);
+  grid-template-rows: repeat(5, 30px);
 `;
 
 const Input = styled.input`
@@ -83,21 +84,33 @@ const LabelMainImage = styled.label`
   text-align: left;
 `;
 
-const InputMainImage = styled.input`
+const FindLabelMainImage = styled.label`
+  grid-area: main_image_label2;
+`
+
+const InputFind = styled.input`
   background-color: #d9d9d9;
   border: none;
   grid-area: main_image;
   border: 1px solid black;
-`;
-
-const UploadBtn = styled.button`
-  grid-area: upload_btn;
-  width: 100px;
-  height: 30px;
-  background-color: #F1EEEE;
-  border: none;
-  border-radius: 20px;
-  margin-left: 20px;
 `
 
-export {Container, Form, WrapForm, Input, InputLeaderID, LabelLeaderID, InputClubName, LabelClubName, InputClubCategory, LabelClubCategory, InputMainImage, LabelMainImage, UploadBtn};
+const InputMainImage = styled.input`
+  background-color: #d9d9d9;
+  border: none;
+  border: 1px solid black;
+`;
+
+const LabelDescription = styled.label`
+  color: #b72929;
+  grid-area: club_description_label;
+  text-align: left;
+`
+const InputDescription = styled.input`
+  background-color: #d9d9d9;
+  border: none;
+  grid-area: club_description;
+  border: 1px solid black;
+`
+
+export {Container, Form, WrapForm, Input, InputLeaderID, LabelLeaderID, InputClubName, LabelClubName, InputClubCategory, LabelClubCategory, InputMainImage, LabelMainImage, FindLabelMainImage, InputFind, LabelDescription, InputDescription};

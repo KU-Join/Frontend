@@ -38,8 +38,16 @@ import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
 
 type ClubMain = {
-    IT: Array<ClubItem>;
-    sports: Array<ClubItem>;
+    구기체육분과: Array<ClubItem>;
+    레저무예분과: Array<ClubItem>;
+    봉사분과: Array<ClubItem>;
+    어학분과: Array<ClubItem>;
+    연행예술분과: Array<ClubItem>;
+    인문사회분과: Array<ClubItem>;
+    자연과학분과: Array<ClubItem>;
+    종교분과: Array<ClubItem>;
+    창작비평분과: Array<ClubItem>;
+    가등록: Array<ClubItem>;
 }
 
 type ClubItem = {
@@ -66,6 +74,12 @@ const MainLayout = () => {
     if (typeof window !== "undefined") {
         const userToken = sessionStorage.getItem('token')
         const userID = sessionStorage.getItem('id')
+        
+
+        //로그인 없이 main 접근 시 index 화면으로 이동
+        if(userID == null) {
+            router.push("./");
+        }
     
       return (
         <UserName>{userID}</UserName>
@@ -84,7 +98,7 @@ const MainLayout = () => {
   }
 
   const getProducts = async (): Promise<ClubMain> => {
-    return await (await fetch('https://gist.githubusercontent.com/serin301/456457c4020f794479b61a42a38ab942/raw/b727626950b7af051c0d56ec5297dd281153bc87/Club.json')).json();
+    return await (await fetch('https://kujoin.herokuapp.com/http://35.170.94.193/club-list')).json();
   };
   
   
@@ -95,18 +109,138 @@ const MainLayout = () => {
     if (error) return <div>'Error..'</div>;
   
     if (data != undefined) {
-      let indata: JSX.Element[];
-      indata = data.IT.map((ind: ClubItem) => (
+
+      let sports: JSX.Element[];
+      sports = data.구기체육분과.map((club: ClubItem) => (
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
-        key={ind.club_name}
+        key={club.club_name}
         >
-            <img src={ind.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
-                <span style={{fontSize: "20px", fontWeight: "bold"}}>{ind.club_name}</span>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
                 <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
             </div>
         </div>
       ));
+      
+      let leisure: JSX.Element[];
+      leisure = data.레저무예분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let volunteer_work: JSX.Element[];
+      volunteer_work = data.봉사분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+      
+      let language: JSX.Element[];
+      language = data.어학분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let art: JSX.Element[];
+      art = data.연행예술분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let humanities: JSX.Element[];
+      humanities = data.인문사회분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let science: JSX.Element[];
+      science = data.자연과학분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let religion: JSX.Element[];
+      religion = data.종교분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let creation: JSX.Element[];
+      creation = data.창작비평분과.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+
+      let provisional_registration: JSX.Element[];
+      provisional_registration = data.가등록.map((club: ClubItem) => (
+        <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
+        key={club.club_name}
+        >
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
+                <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+            </div>
+        </div>
+      ));
+      
+      
   
     
 
@@ -158,7 +292,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "50px"}}>
-                                {indata}
+                                {sports}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -168,7 +302,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {leisure}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -178,7 +312,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {volunteer_work}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -188,7 +322,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {language}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -198,7 +332,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {art}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -208,7 +342,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {humanities}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -218,7 +352,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {science}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -228,7 +362,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {religion}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -238,7 +372,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {creation}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
@@ -248,7 +382,7 @@ const MainLayout = () => {
                     <WrapClub>
                         <ScrollContainer style={{width: "70vw"}} vertical={false}>
                             <div style={{display: "flex", maxWidth: "50px", gap: "10px"}}>
-                                
+                                {provisional_registration}
                             </div>
                         </ScrollContainer>
                     </WrapClub>
