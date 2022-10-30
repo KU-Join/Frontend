@@ -100,8 +100,21 @@ const MainLayout = () => {
   const getProducts = async (): Promise<ClubMain> => {
     return await (await fetch('https://kujoin.herokuapp.com/http://35.170.94.193/club-list')).json();
   };
+
+  const onclick = (club_name:string, club_description:string, club_img:string) => {
+    router.push({
+        pathname: './club/[club_name]',
+        query: {
+            club_name: club_name,
+            club_description: club_description,
+            club_img: club_img
+        },
+    },
+    './club/'
+    );
+  }
   
-  
+
     const { data, isLoading, error } = useQuery(['products'], getProducts);
   
     if (isLoading) return <div>'Loading...'</div>;
@@ -115,10 +128,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}} alt=""/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -128,10 +141,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -141,10 +154,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -154,10 +167,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -167,10 +180,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -180,10 +193,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -193,10 +206,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -206,10 +219,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -219,10 +232,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));
@@ -232,10 +245,10 @@ const MainLayout = () => {
         <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white"}}
         key={club.club_name}
         >
-            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px"}}/>
+            <img src={club.club_img} style={{width: "300px", height: "150px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}}/>
             <div style={{display: "flex", justifyContent: "space-between", padding: "10px", alignItems: "center"}}>
                 <span style={{fontSize: "20px", fontWeight: "bold"}}>{club.club_name}</span>
-                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}}>자세히 보기</button>
+                <button style={{padding: "10px", backgroundColor: "#D9D9D9", borderRadius: "20px"}} onClick={() => onclick(club.club_name, club.club_description, club.club_img)}>자세히 보기</button>
             </div>
         </div>
       ));

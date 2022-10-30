@@ -158,7 +158,10 @@ const WrapTitle = styled.div`
   display: flex;
   justify-content: space-between;
 `
-
+const WrapButton = styled.div`
+  display: flex;
+  justify-content: space-between;
+`
 
 export {
   Container,
@@ -186,5 +189,6 @@ export {
   WrapFriendList,
   WrapFriendListTitle,
   Friend,
-  WrapTitle
+  WrapTitle,
+  WrapButton
 };
