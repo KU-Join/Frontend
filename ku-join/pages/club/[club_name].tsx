@@ -43,6 +43,7 @@ const Club_PR: NextPage = () => {
     const {club_name, club_description, club_img} = router.query
 
     let clubImg = club_img as string
+    let clubname = club_name as string
 
     const Username:any = () => {
 
@@ -66,6 +67,18 @@ const Club_PR: NextPage = () => {
         e.preventDefault();
         router.push("./");
       }
+
+      const onclick = (club_name:string) => {
+        router.push({
+            pathname: './manage/management',
+            query: {
+                club_name: club_name,
+            },
+        },
+        './manage/'
+        );
+      }
+
     return (
         <Container>
           <WrapContents>
@@ -106,7 +119,7 @@ const Club_PR: NextPage = () => {
             <WrapButton style={{width: "70vw"}}>
               <div style={{display: "flex", gap: "10px"}}>
                 <MainTitle>{club_name}</MainTitle>
-                <button style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#333333", border: "none", borderRadius: "20px", fontWeight: "bold", color: "white"}}>동아리 관리</button>
+                <button style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#333333", border: "none", borderRadius: "20px", fontWeight: "bold", color: "white"}} onClick={() => onclick(clubname)}>동아리 관리</button>
               </div>
               <div style={{display: "flex", gap: "10px"}}>
                 <button style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F0D2D2", border: "none", borderRadius: "20px", fontWeight: "bold"}}>가입하기</button>
@@ -115,7 +128,7 @@ const Club_PR: NextPage = () => {
             </WrapButton>
             <p style={{color: "white", textAlign: "left", margin: "20px 0"}}>{club_description}</p>
             <div>
-              <ScrollContainer style={{height: "80vh"}} horizontal={false}>
+              <ScrollContainer style={{height: "80vw"}} vertical={false}>
                 <div style={{width: "300px", borderRadius: "5px", backgroundColor: "white", textAlign: "center", margin: "20px auto"}}>
                     <img src={clubImg} style={{width: "300px", height: "400px", borderTopLeftRadius: "5px", borderTopRightRadius: "5px", objectFit: "cover"}} alt=""/>
                     <div style={{textAlign: "left", padding: "10px"}}>
