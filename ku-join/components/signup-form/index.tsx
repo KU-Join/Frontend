@@ -6,6 +6,7 @@ import Modal from 'react-modal'
 import { MdAlternateEmail } from 'react-icons/md';
 
 const SignUpForm = () => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const router = useRouter();
 
@@ -61,11 +62,11 @@ const SignUpForm = () => {
       return false;
     }
 
-    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/members", {
+    fetch(API_URL + "/member-service/members", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://54.180.68.142:8080",
+        "Origin": API_URL,
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({
