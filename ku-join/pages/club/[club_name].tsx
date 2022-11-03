@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {NextPage} from "next";
 import {useRouter} from 'next/router';
 import ScrollContainer from 'react-indiana-drag-scroll';
@@ -32,6 +32,9 @@ import {
     WrapTitle,
     WrapButton
   } from '../../components/main/main-style'
+
+  import { Input } from "../../components/signup-form/signup-form-style";
+  import Modal from 'react-modal'
   
   import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
   import { MdHeadset } from 'react-icons/md';
@@ -79,18 +82,42 @@ const Club_PR: NextPage = () => {
         );
       }
 
+      const [modalIsOpen, setModalIsOpen] = useState(false);
+
     return (
         <Container>
+          <Modal isOpen={modalIsOpen} ariaHideApp={false} style={{
+    overlay: {
+      margin: 'auto',
+      width: '700px',
+      height: '500px',
+      backgroundColor: 'white',
+      borderRadius: '20px'
+    }
+  }} contentElement={
+    (props, children) => 
+    <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "700px", height: "500px"}}> 
+    <form>
+      <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "50px"}}>
+        <button onClick={()=>setModalIsOpen(false)}>(임시)닫는 버튼</button>
+        <p style={{color: "#b72929", textAlign: "left"}}>친구로 추가할 분의 아이디를 입력해주세요.</p>
+        <input type="text" id="verify_code" name="verify_code" placeholder="" style={{borderTop: "none", borderLeft: "none", borderRight: "none", backgroundColor: "none", width: "250px"}}></input>
+        <Input type="button" value="제출" style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px"}}></Input>
+      </div>
+    </form>
+    </div>}
+  >
+      </Modal>
           <WrapContents>
             <UserInfo>
               <Logo>
                 <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
+                <LogoTitle style={{ color: '#2ABF4B', cursor: "pointer" }} onClick={handleClick}>JOIN</LogoTitle>
               </Logo>
               <WrapFriendList>
                 <WrapFriendListTitle>
                     <ContentTitle>친구</ContentTitle>
-                    <BsPlusLg style={{color: "black"}}/>
+                    <BsPlusLg style={{color: "black"}} onClick={() => {setModalIsOpen(true)}}/>
                 </WrapFriendListTitle>
                 <Friend>김아무개</Friend>
                 <Friend>이아무개</Friend>
@@ -111,7 +138,7 @@ const Club_PR: NextPage = () => {
               <UserStatus>
                 <BsFillMicFill style={{ color: '#B9BBBE' }} />
                 <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => router.push('../setup')}/>
               </UserStatus>
             </WrapUserStatus>
           </WrapContents>
