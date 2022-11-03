@@ -70,6 +70,8 @@ const MainLayout = () => {
 
   //닉네임을 메인에 두고 싶으니까 여기서 user의 닉네임에 접근할 수 있도록 GET를 하면 좋겠다.
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
   const router = useRouter();
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -103,7 +105,7 @@ const MainLayout = () => {
   }
 
   const getProducts = async (): Promise<ClubMain> => {
-    return await (await fetch('https://kujoin.herokuapp.com/http://35.170.94.193/club-list')).json();
+    return await (await fetch(API_URL + '/club-service/club-list')).json();
   };
 
   const onclick = (club_name:string, club_description:string, club_img:string) => {

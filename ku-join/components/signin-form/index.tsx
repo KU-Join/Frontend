@@ -3,6 +3,8 @@ import { Container, Form, WrapForm, LabelID, InputID, LabelPwd, InputPwd } from 
 import { useRouter } from 'next/router';
 
 const SignInForm = () => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
   const router = useRouter();
 
   const [person, setPerson] = useState({
@@ -23,11 +25,11 @@ const SignInForm = () => {
       return false;
     }
 
-    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/login", {
+    fetch(API_URL + "/member-service/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://54.180.68.142:8080",
+        "Origin": API_URL,
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({
