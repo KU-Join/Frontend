@@ -118,19 +118,17 @@ const MainLayout = () => {
 
   const onclick = (
     club_name: string,
-    club_description: string,
-    club_img: string
+    club_id: number
   ) => {
     router.push(
       {
         pathname: './club/[club_name]',
         query: {
           club_name: club_name,
-          club_description: club_description,
-          club_img: club_img,
+          club_id: club_id
         },
       },
-      './club/'
+      './club/[club_name]'
     );
   };
 
@@ -156,9 +154,9 @@ const MainLayout = () => {
   if (data1 != undefined && data2 != undefined) {
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
-      <JoinedClub>
+      <JoinedClub key={club.club_id}>
         <JoinedClubImg />
-        <JoinedClubName key={club.club_id}>{club.club_name}</JoinedClubName>
+        <JoinedClubName>{club.club_name}</JoinedClubName>
       </JoinedClub>
     ));
 
@@ -201,7 +199,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -248,7 +246,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -295,7 +293,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -342,7 +340,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -389,7 +387,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -436,7 +434,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -483,7 +481,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -530,7 +528,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -577,7 +575,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
@@ -624,7 +622,7 @@ const MainLayout = () => {
               borderRadius: '20px',
             }}
             onClick={() =>
-              onclick(club.club_name, club.club_description, club.club_img)
+              onclick(club.club_name, club.club_id)
             }
           >
             자세히 보기
