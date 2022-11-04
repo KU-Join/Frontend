@@ -46,6 +46,7 @@ import {
   Button,
   WrapTab,
   WrapSubTab,
+  WrapForm, LabelMainImage2, FindLabelMainImage2, InputFind2, InputMainImage2, LabelDescription2, InputDescription2
 } from './manage-style';
 import { Input } from '../signup-form/signup-form-style';
 import Modal from 'react-modal';
@@ -89,6 +90,8 @@ const ManagementLayout = () => {
 
   const userID = sessionStorage.getItem('id');
 
+  const userid = userID as string;
+
   const Username: any = () => {
     if (typeof window !== 'undefined') {
       const userToken = sessionStorage.getItem('token');
@@ -117,6 +120,15 @@ const ManagementLayout = () => {
 
   const inputRef = useRef<any>();
 
+  const [feedFiles, setFeedFiles] = useState<any>([]);
+
+  const SaveFeedFileImage = (e: any) => {
+    inputRef2.current.placeholder = e.target.files[0].name;
+    setFeedFiles([...feedFiles, e.target.files[0]]);
+  };
+
+  const inputRef2 = useRef<any>();
+
   const [introduction, setIntroduction] = useState({
     comment: '',
   });
@@ -125,7 +137,52 @@ const ManagementLayout = () => {
     setIntroduction({ ...introduction, [e.target.name]: e.target.value });
   };
 
+  const inputRef3 = useRef<any>();
+
+  const [feed, setFeed] = useState({
+    feed_comment: ''
+  });
+
+  const handleFeedInputChange = (e: any) => {
+    setFeed({ ...feed, [e.target.name]: e.target.value});
+  }
+
+  const handleFeedSubmit = (e:any) => {
+    if(inputRef2.current.placeholder == '파일 이름') {
+        e.preventDefault();
+        alert("피드 이미지를 등록해주세요.")
+        return false;
+    }
+
+    if(feed.feed_comment.length == 0) {
+        e.preventDefault();
+        alert("피드 내용을 입력해주세요.");
+        return false;
+    }
+
+    const formData = new FormData();
+        formData.append("club_id", clubID);
+        formData.append("feed_uploader", userid);
+        formData.append("feed_contents", feed.feed_comment);
+        formData.append("feed_image", feedFiles[0]);
+
+        fetch(API_URL + '/club-service/club-feed/' + clubID, {
+            method: "POST",
+            body: formData
+        })
+        .then((response) => {
+            response.status == 201 ? SuccessFeedSubmit() : alert("피드 등록실패")
+        })
+  }
+
+  const SuccessFeedSubmit = () => {
+    alert("피드 등록성공");
+    setClubFeedModalIsOpen(false)
+  }
+
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const [clubFeedModalIsOpen, setClubFeedModalIsOpen] = useState(false);
 
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
     const userID = sessionStorage.getItem('id');
@@ -139,7 +196,7 @@ const ManagementLayout = () => {
   }
 
   const getClubFeed = async (): Promise<FeedItem[]> => {
-    return await (await fetch(API_URL + '/club-service//club-feed/' + clubID)).json();
+    return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
   }
 
   const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
@@ -270,6 +327,71 @@ const ManagementLayout = () => {
                       border: 'none',
                       borderRadius: '20px',
                     }}
+                  ></Input>
+                </div>
+              </form>
+            </div>
+          )}
+        ></Modal>
+        <Modal
+          isOpen={clubFeedModalIsOpen}
+          ariaHideApp={false}
+          style={{
+            overlay: {
+              margin: 'auto',
+              width: '700px',
+              height: '500px',
+              backgroundColor: 'white',
+              borderRadius: '20px',
+            },
+          }}
+          contentElement={(props, children) => (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '700px',
+                height: '500px',
+              }}
+            >
+              <form>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '50px',
+                  }}
+                >
+                  <button onClick={() => setClubFeedModalIsOpen(false)}>
+                    (임시)닫는 버튼
+                  </button>
+                  <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                    피드 추가
+                  </p>
+                  <WrapForm>
+                    <LabelMainImage2>피드 이미지</LabelMainImage2>
+                    <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                    <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                    <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                    <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                    <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                  </WrapForm>
+                  <Input
+                    type="button"
+                    value="제출"
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#F1EEEE',
+                      border: 'none',
+                      borderRadius: '20px',
+                    }}
+                    onClick={handleFeedSubmit}
                   ></Input>
                 </div>
               </form>
@@ -448,7 +570,9 @@ const ManagementLayout = () => {
                         {feedList}
                     </ScrollContainer>
                   </div>
-                  <Button>피드 추가</Button>
+                  <Button onClick={() => {
+                    setClubFeedModalIsOpen(true);
+                  }}>피드 추가</Button>
                 </WrapSubTab>
               </WrapTab>
               <WrapTab>
