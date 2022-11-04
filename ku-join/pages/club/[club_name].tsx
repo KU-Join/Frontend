@@ -41,21 +41,43 @@ import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
 import { MdHeadset } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
 
+type ClubDetailInfoItem = {
+  club_id: number;
+  club_name: string;
+  club_img: string;
+  club_description: string;
+  category: string;
+  opened: boolean;
+  club_URL: null;
+  leader_id: string;
+}
+
 type UserClubListItem = {
   club_id: number;
   club_name: string;
   leader: boolean;
 };
 
+
+type FeedItem = {
+  feed_uploader: string;
+  feed_img: string;
+  feed_contents: string;
+  time: string;
+}
+
 const Club_PR: NextPage = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const router = useRouter();
 
-  const { club_name, club_description, club_img } = router.query;
+  const { club_name, club_id } = router.query;
 
-  let clubImg = club_img as string;
   let clubname = club_name as string;
+  let clubidUnknown = club_id as unknown;
+  let clubid = clubidUnknown as number
+  let clubID = club_id as string
+ 
 
   const Username: any = () => {
     if (typeof window !== 'undefined') {
@@ -76,15 +98,16 @@ const Club_PR: NextPage = () => {
     router.push('./');
   };
 
-  const onclick = (club_name: string) => {
+  const onclick = (club_name: string, club_id: number) => {
     router.push(
       {
-        pathname: './manage/management',
+        pathname: './manage/[club_name]',
         query: {
           club_name: club_name,
+          club_id: club_id
         },
       },
-      './manage/'
+      './manage/[club_name]'
     );
   };
 
@@ -97,24 +120,78 @@ const Club_PR: NextPage = () => {
     ).json();
   };
 
+  const getClubDetailInfo = async (): Promise<ClubDetailInfoItem> => {
+    return await (await fetch(API_URL + '/club-service/club-information/' + clubID)).json();
+  }
+
+  const getClubFeed = async (): Promise<FeedItem[]> => {
+    return await (await fetch(API_URL + '/club-service//club-feed/' + clubID)).json();
+  }
+
+  const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
+
   const {
     data: data2,
     isLoading: isLoading2,
     error: error2,
   } = useQuery(['UsersclubList'], getUsersClubList);
 
+  const {data: data3, isLoading: isLoading3, error: error3} = useQuery(['ClubFeed'], getClubFeed)
+
+  if (isLoading1) return <div>'Loading...'</div>;
+
   if (isLoading2) return <div>'Loading...'</div>;
 
-  if (error2) return <div>'Error..'</div>;
+  if (isLoading3) return <div>'Loading...'</div>;
 
-  if (data2 != undefined) {
+  if (error1) return <div>'Error..'</div>;
+
+  if (error2) return <div>'Error..'</div>;
+  
+  if (error3) return <div>'Error..'</div>;
+
+  if (((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) {
+  
+
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
-      <JoinedClub>
+      <JoinedClub key={club.club_id}>
         <JoinedClubImg />
-        <JoinedClubName key={club.club_id}>{club.club_name}</JoinedClubName>
+        <JoinedClubName>{club.club_name}</JoinedClubName>
       </JoinedClub>
     ));
+
+    let feedList: JSX.Element[];
+    feedList = data3.map((feed: FeedItem) => (
+      <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+    ))
 
     return (
       <Container>
@@ -246,7 +323,7 @@ const Club_PR: NextPage = () => {
                   fontWeight: 'bold',
                   color: 'white',
                 }}
-                onClick={() => onclick(clubname)}
+                onClick={() => onclick(clubname, clubid)}
               >
                 동아리 관리
               </button>
@@ -280,65 +357,12 @@ const Club_PR: NextPage = () => {
               </button>
             </div>
           </WrapButton>
-          <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }}>
-            {club_description}
-          </p>
+          <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+            {data1.club_description}
+      </p>
           <div>
             <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-              <div
-                style={{
-                  width: '300px',
-                  borderRadius: '5px',
-                  backgroundColor: 'white',
-                  textAlign: 'center',
-                  margin: '20px auto',
-                }}
-              >
-                <img
-                  src={clubImg}
-                  style={{
-                    width: '300px',
-                    height: '400px',
-                    borderTopLeftRadius: '5px',
-                    borderTopRightRadius: '5px',
-                    objectFit: 'cover',
-                  }}
-                  alt=""
-                />
-                <div style={{ textAlign: 'left', padding: '10px' }}>
-                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                    {club_description}
-                  </p>
-                  <p style={{ fontSize: '8px', color: '#333333' }}>10월 30일</p>
-                </div>
-              </div>
-              <div
-                style={{
-                  width: '300px',
-                  borderRadius: '5px',
-                  backgroundColor: 'white',
-                  textAlign: 'center',
-                  margin: '20px auto',
-                }}
-              >
-                <img
-                  src={clubImg}
-                  style={{
-                    width: '300px',
-                    height: '400px',
-                    borderTopLeftRadius: '5px',
-                    borderTopRightRadius: '5px',
-                    objectFit: 'cover',
-                  }}
-                  alt=""
-                />
-                <div style={{ textAlign: 'left', padding: '10px' }}>
-                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                    {club_description}
-                  </p>
-                  <p style={{ fontSize: '8px', color: '#333333' }}>10월 30일</p>
-                </div>
-              </div>
+                {feedList}
             </ScrollContainer>
           </div>
         </Contents>

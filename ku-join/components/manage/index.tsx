@@ -54,18 +54,39 @@ import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
 import { MdHeadset } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
 
+type ClubDetailInfoItem = {
+    club_id: number;
+    club_name: string;
+    club_img: string;
+    club_description: string;
+    category: string;
+    opened: boolean;
+    club_URL: null;
+    leader_id: string;
+  }
+
 type UserClubListItem = {
   club_id: number;
   club_name: string;
   leader: boolean;
 };
 
+type FeedItem = {
+    feed_uploader: string;
+    feed_img: string;
+    feed_contents: string;
+    time: string;
+  }
+
 const ManagementLayout = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const router = useRouter();
 
-  const { club_name } = router.query;
+  const { club_name, club_id } = router.query;
+
+  let clubID = club_id as string;
+
   const userID = sessionStorage.getItem('id');
 
   const Username: any = () => {
@@ -113,24 +134,76 @@ const ManagementLayout = () => {
     ).json();
   };
 
+  const getClubDetailInfo = async (): Promise<ClubDetailInfoItem> => {
+    return await (await fetch(API_URL + '/club-service/club-information/' + clubID)).json();
+  }
+
+  const getClubFeed = async (): Promise<FeedItem[]> => {
+    return await (await fetch(API_URL + '/club-service//club-feed/' + clubID)).json();
+  }
+
+  const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
+
   const {
     data: data2,
     isLoading: isLoading2,
     error: error2,
   } = useQuery(['UsersclubList'], getUsersClubList);
 
+  const {data: data3, isLoading: isLoading3, error: error3} = useQuery(['ClubFeed'], getClubFeed)
+
+  if (isLoading1) return <div>'Loading...'</div>;
+
   if (isLoading2) return <div>'Loading...'</div>;
+
+  if (isLoading3) return <div>'Loading...'</div>;
+
+  if (error1) return <div>'Error..'</div>;
 
   if (error2) return <div>'Error..'</div>;
 
-  if (data2 != undefined) {
+  if (error3) return <div>'Error..'</div>;
+
+  if (((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) {
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
-      <JoinedClub>
+      <JoinedClub key={club.club_id}>
         <JoinedClubImg />
-        <JoinedClubName key={club.club_id}>{club.club_name}</JoinedClubName>
+        <JoinedClubName>{club.club_name}</JoinedClubName>
       </JoinedClub>
     ));
+
+    let feedList: JSX.Element[];
+    feedList = data3.map((feed: FeedItem) => (
+      <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+    ))
 
     return (
       <Container>
@@ -329,7 +402,7 @@ const ManagementLayout = () => {
                   >
                     <InputFind
                       ref={inputRef}
-                      placeholder="파일 이름"
+                      placeholder={data1.club_img}
                       disabled={true}
                       style={{ width: '300px' }}
                     ></InputFind>
@@ -363,7 +436,7 @@ const ManagementLayout = () => {
                     name="comment"
                     value={introduction.comment}
                     onChange={handleInputChange}
-                    placeholder="안녕하세요"
+                    placeholder={data1.club_description}
                     style={{ width: '400px' }}
                     maxLength={30}
                   ></input>
@@ -372,169 +445,7 @@ const ManagementLayout = () => {
                   <TabSubTitle>피드</TabSubTitle>
                   <div>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          maxWidth: '300px',
-                          gap: '50px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '300px',
-                            borderRadius: '5px',
-                            backgroundColor: 'white',
-                            textAlign: 'center',
-                            margin: '20px auto',
-                          }}
-                        >
-                          <img
-                            src="https://img.icons8.com/office/80/000000/snow.png"
-                            style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                            }}
-                            alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                            <p
-                              style={{ fontSize: '16px', marginBottom: '5px' }}
-                            >
-                              피드 내용
-                            </p>
-                            <p style={{ fontSize: '8px', color: '#333333' }}>
-                              10월 30일
-                            </p>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            width: '300px',
-                            borderRadius: '5px',
-                            backgroundColor: 'white',
-                            textAlign: 'center',
-                            margin: '20px auto',
-                          }}
-                        >
-                          <img
-                            src="https://img.icons8.com/office/80/000000/snow.png"
-                            style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                            }}
-                            alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                            <p
-                              style={{ fontSize: '16px', marginBottom: '5px' }}
-                            >
-                              피드 내용
-                            </p>
-                            <p style={{ fontSize: '8px', color: '#333333' }}>
-                              10월 30일
-                            </p>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            width: '300px',
-                            borderRadius: '5px',
-                            backgroundColor: 'white',
-                            textAlign: 'center',
-                            margin: '20px auto',
-                          }}
-                        >
-                          <img
-                            src="https://img.icons8.com/office/80/000000/snow.png"
-                            style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                            }}
-                            alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                            <p
-                              style={{ fontSize: '16px', marginBottom: '5px' }}
-                            >
-                              피드 내용
-                            </p>
-                            <p style={{ fontSize: '8px', color: '#333333' }}>
-                              10월 30일
-                            </p>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            width: '300px',
-                            borderRadius: '5px',
-                            backgroundColor: 'white',
-                            textAlign: 'center',
-                            margin: '20px auto',
-                          }}
-                        >
-                          <img
-                            src="https://img.icons8.com/office/80/000000/snow.png"
-                            style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                            }}
-                            alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                            <p
-                              style={{ fontSize: '16px', marginBottom: '5px' }}
-                            >
-                              피드 내용
-                            </p>
-                            <p style={{ fontSize: '8px', color: '#333333' }}>
-                              10월 30일
-                            </p>
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            width: '300px',
-                            borderRadius: '5px',
-                            backgroundColor: 'white',
-                            textAlign: 'center',
-                            margin: '20px auto',
-                          }}
-                        >
-                          <img
-                            src="https://img.icons8.com/office/80/000000/snow.png"
-                            style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                            }}
-                            alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                            <p
-                              style={{ fontSize: '16px', marginBottom: '5px' }}
-                            >
-                              피드 내용
-                            </p>
-                            <p style={{ fontSize: '8px', color: '#333333' }}>
-                              10월 30일
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                        {feedList}
                     </ScrollContainer>
                   </div>
                   <Button>피드 추가</Button>
