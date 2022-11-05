@@ -91,11 +91,11 @@ const SignUpForm = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const SendMail = () => {
-    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/mail/send", {
+    fetch(API_URL + "/member-service/mail/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://54.180.68.142:8080",
+        "Origin": API_URL,
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({
@@ -117,11 +117,11 @@ const SignUpForm = () => {
   }
 
   const SendCode = () => {
-    fetch("https://kujoin.herokuapp.com/http://54.180.68.142:8080/member-service/mail/auth", {
+    fetch(API_URL + "/member-service/mail/auth", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://54.180.68.142:8080",
+        "Origin": API_URL,
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({

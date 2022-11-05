@@ -2,6 +2,8 @@ import React, {useState, useRef} from 'react'
 import { Container, Form, WrapForm, Input, InputLeaderID, LabelLeaderID, InputClubName, LabelClubName, InputClubCategory, LabelClubCategory, InputMainImage, LabelMainImage, FindLabelMainImage, InputFind, LabelDescription, InputDescription} from './makeclub-form-style'
 
 const MakeClubForm = () => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+    
     const [files, setFiles] = useState<any>([])
 
     const SaveFileImage = (e:any) => {
@@ -76,7 +78,7 @@ const MakeClubForm = () => {
         //const blob = new Blob([JSON.stringify(club)], {type: "application/json"})
         //formData.append("info", blob)
 
-        fetch('https://kujoin.herokuapp.com/http://35.170.94.193/club-form', {
+        fetch(API_URL + '/club-form', {
             method: "POST",
             body: formData
         })
