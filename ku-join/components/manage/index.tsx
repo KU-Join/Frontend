@@ -72,16 +72,29 @@ type UserClubListItem = {
   leader: boolean;
 };
 
-type UserClubListItemEmpty = {
-    club_id: [];
-  }
-
 type FeedItem = {
     feed_uploader: string;
     feed_img: string;
     feed_contents: string;
     time: string;
   }
+
+type JoinPersonItem = {
+    apply_id: string;
+    club_name: string;
+    club_id: string;
+    user_id: string;
+}
+
+type JoinPersonItemEmpty = {
+  club_id: [];
+}
+
+type ClubMemberItem = {
+  user_id: string;
+  leader: boolean;
+}
+
 
 const ManagementLayout = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -184,18 +197,27 @@ const ManagementLayout = () => {
     setClubFeedModalIsOpen(false)
   }
 
+  const ApproveJoinclub = (ApplyID:string) => {
+    fetch(API_URL + "/club-service/club-apply/" + clubID, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": API_URL,
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        user_id: userid,
+        apply_id: ApplyID,
+        accept: true
+      })
+    })
+  }
+
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const [clubFeedModalIsOpen, setClubFeedModalIsOpen] = useState(false);
 
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
-    const userID = sessionStorage.getItem('id');
-    return await (
-      await fetch(API_URL + '/club-service/registered/' + userID)
-    ).json();
-  };
-
-  const getUsersClubListEmpty = async (): Promise<UserClubListItemEmpty> => {
     const userID = sessionStorage.getItem('id');
     return await (
       await fetch(API_URL + '/club-service/registered/' + userID)
@@ -210,6 +232,22 @@ const ManagementLayout = () => {
     return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
   }
 
+  const getClubFeedEmpty = async (): Promise<any> => {
+    return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
+  }
+
+  const getJoinList = async (): Promise<JoinPersonItem[]> => {
+    return await (await fetch(API_URL + '/club-service/club-apply/' + clubID + '?user_id=' + userID)).json();
+  }
+
+  const getJoinListEmpty = async (): Promise<JoinPersonItemEmpty> => {
+    return await (await fetch(API_URL + '/club-service/club-apply/' + clubID + '?user_id=' + userID)).json();
+  }
+
+  const getClubMemberList = async (): Promise<ClubMemberItem[]> => {
+    return await (await fetch(API_URL + '/club-service/club-member/' + clubID)).json();
+  }
+
   const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
 
   const {
@@ -220,7 +258,13 @@ const ManagementLayout = () => {
 
   const {data: data3, isLoading: isLoading3, error: error3} = useQuery(['ClubFeed'], getClubFeed)
 
-  const {data: data4, isLoading: isLoading4, error: error4} = useQuery(['UsersClubListEmpty'], getUsersClubListEmpty);
+  const {data: data4, isLoading: isLoading4, error: error4} = useQuery(['ClubFeedEmpty'], getClubFeedEmpty)
+
+  const {data: data5, isLoading: isLoading5, error: error5} = useQuery(['JoinList'], getJoinList)
+
+  const {data: data6, isLoading: isLoading6, error: error6} = useQuery(['JoinListEmpty'], getJoinListEmpty);
+
+  const {data: data7, isLoading: isLoading7, error: error7} = useQuery(['ClubMember'], getClubMemberList);
 
   if (isLoading1) return <div>'Loading...'</div>;
 
@@ -230,6 +274,12 @@ const ManagementLayout = () => {
 
   if (isLoading4) return <div>'Loading...'</div>;
 
+  if (isLoading5) return <div>'Loading...'</div>;
+
+  if (isLoading6) return <div>'Loading...'</div>;
+
+  if (isLoading7) return <div>'Loading...'</div>;
+
   if (error1) return <div>'Error..'</div>;
 
   if (error2) return <div>'Error..'</div>;
@@ -238,7 +288,19 @@ const ManagementLayout = () => {
 
   if (error4) return <div>'Error..'</div>;
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data4?.club_id == undefined)) {
+  if (error5) return <div>'Error..'</div>;
+
+  if (error6) return <div>'Error..'</div>;
+
+  if (error7) return <div>'Error..'</div>;
+
+  /* 동아리 만들자마자 리더는 동아리에 가입이 된 상태이기 때문에 가입된 동아리 목록이 0개로 뜰 수 없기에 삭제. 
+  구분해야하는 것은 피드가 0개 일 때 추가해주고(data4) 동아리 신청자 목록 0개일 때(data6) 아닐 때(data5) 구분해서 추가해주고. 동아리원 목록(data7)은 리더가 있기 때문에 따로 구분할 필요 없음*/
+  //data4는 우선 제외. 홍보게시판에서도 큰 오류없이 넘어감.
+
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id == undefined) ) {
+    console.log(data6);
+
 
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
@@ -278,6 +340,38 @@ const ManagementLayout = () => {
                   <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
                 </div>
               </div>
+    ))
+
+    let JoinPersonList: JSX.Element[];
+    JoinPersonList = data5.map((Person: JoinPersonItem) => (
+      <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                key={Person.user_id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <UserImg />
+                    <MemberName>{Person.user_id}</MemberName>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                  </div>
+                </div>
+    ))
+
+    let MemberList: JSX.Element[];
+    MemberList = data7.map((Member: ClubMemberItem) => (
+      <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+            <UserImg />
+            <MemberName>{Member.user_id}</MemberName>
+        </div>
+        <Button>탈퇴</Button>
+      </div>
     ))
 
     return (
@@ -488,42 +582,17 @@ const ManagementLayout = () => {
                   동아리 가입 승인
                 </TabTitle>
                 <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <UserImg />
-                    <MemberName>이아무개</MemberName>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button>승인</Button>
-                    <Button>거절</Button>
-                  </div>
+                  {JoinPersonList}
                 </div>
               </WrapTab>
               <WrapTab>
                 <TabTitle style={{ marginBottom: '20px' }}>
                   동아리원 관리
                 </TabTitle>
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <UserImg />
-                    <MemberName>김아무개</MemberName>
-                  </div>
-                  <Button>탈퇴</Button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
+                  {MemberList}
                 </div>
               </WrapTab>
               <WrapTab>
@@ -603,7 +672,18 @@ const ManagementLayout = () => {
     );
   }
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data4?.club_id != undefined)) {
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id != undefined)) {
+    console.log("저쪽");
+    console.log(data6)
+
+    let usersClubListName: JSX.Element[];
+    usersClubListName = data2.map((club: UserClubListItem) => (
+      <JoinedClub key={club.club_id}>
+        <JoinedClubImg />
+        <JoinedClubName>{club.club_name}</JoinedClubName>
+      </JoinedClub>
+    ));
+
     let feedList: JSX.Element[];
     feedList = data3.map((feed: FeedItem) => (
       <div
@@ -634,6 +714,25 @@ const ManagementLayout = () => {
                   <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
                 </div>
               </div>
+    ))
+
+    let MemberList: JSX.Element[];
+    MemberList = data7.map((Member: ClubMemberItem) => (
+      <div
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                key={Member.user_id}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <UserImg />
+                    <MemberName>{Member.user_id}</MemberName>
+                  </div>
+                  <Button>탈퇴</Button>
+                </div>
     ))
 
     return (
@@ -795,7 +894,7 @@ const ManagementLayout = () => {
             </WrapFriendList>
             <WrapJoinedClub>
               <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-              <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
+              <div>{usersClubListName}</div>
             </WrapJoinedClub>
           </UserInfo>
           <WrapUserStatus>
@@ -843,43 +942,16 @@ const ManagementLayout = () => {
                 <TabTitle style={{ marginBottom: '20px' }}>
                   동아리 가입 승인
                 </TabTitle>
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <UserImg />
-                    <MemberName>이아무개</MemberName>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button>승인</Button>
-                    <Button>거절</Button>
-                  </div>
-                </div>
+                <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
               </WrapTab>
               <WrapTab>
                 <TabTitle style={{ marginBottom: '20px' }}>
                   동아리원 관리
                 </TabTitle>
                 <div
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <UserImg />
-                    <MemberName>김아무개</MemberName>
-                  </div>
-                  <Button>탈퇴</Button>
+                  {MemberList}
                 </div>
               </WrapTab>
               <WrapTab>

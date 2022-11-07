@@ -120,6 +120,27 @@ const Club_PR: NextPage = () => {
     );
   };
 
+  const JoinClubClick = () => {
+    console.log("클릭중")
+    const userID = sessionStorage.getItem('id');
+
+    fetch(API_URL + '/club-service/club-apply', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": API_URL,
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        club_id: clubID,
+        user_id: userID
+      })
+    })
+    .then((response) => {
+      response.status === 201 ? alert("동아리 가입신청이 완료되었습니다. 동아리장이 가입 승인을 하면 채팅채널에 입장 가능합니다.") : alert("가입실패")
+    })
+  }
+
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
@@ -141,7 +162,7 @@ const Club_PR: NextPage = () => {
   }
 
   const getClubFeed = async (): Promise<FeedItem[]> => {
-    return await (await fetch(API_URL + '/club-service//club-feed/' + clubID)).json();
+    return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
   }
 
   const getCheckMemberLeader = async (): Promise<CheckMemberLeader> => {
@@ -187,6 +208,77 @@ const Club_PR: NextPage = () => {
   if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id == undefined)) {
     /*data5의 경우의 수 - A 동아리의 리더(멤버O) / 리더X(멤버O) / 멤버X */
     /*data4?.club_id의 경우의 수 -undefined: 뭐라도 하나 속한 동아리가 있음. !undefined: 아무 곳에도 속한 동아리가 없음. 고로 A 동아리의 리더이거나 멤버일 수 없음. 무조건 멤버X암*/
+
+    const RecruitState: any = () => {
+      if (data1.opened == true) {
+        return (
+          <button
+                  style={{
+                    width: '150px',
+                    height: '45px',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  모집중
+                </button>
+        )
+      }
+
+      else {
+        return (
+          <button
+                  style={{
+                    width: '150px',
+                    height: '45px',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  모집종료
+                </button>
+        )
+      }
+    }
+
+    const JoinState: any = () => {
+      if (data1.opened == true) {
+        //현우님 수정 확인 후 let count = 0 만들어서 1되면 승인 대기로 바꿔주자
+        return (
+          <button
+                  style={{
+                    cursor: 'pointer',
+                    width: '150px',
+                    height: '45px',
+                    backgroundColor: '#F0D2D2',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                onClick={() => JoinClubClick()}>
+                  가입하기
+                </button>
+        )
+      }
+
+      else {
+        return (
+          <button
+                  style={{
+                    width: '150px',
+                    height: '45px',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  가입불가
+                </button>
+        )
+      }
+    }
   
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
@@ -366,19 +458,7 @@ const Club_PR: NextPage = () => {
               </button>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
-                    backgroundColor: '#F0D2D2',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  가입하기
-                </button>
+                <RecruitState/>
                 <button
                   style={{
                     cursor: 'pointer',
@@ -535,19 +615,6 @@ const Club_PR: NextPage = () => {
                     cursor: 'pointer',
                     width: '150px',
                     height: '45px',
-                    backgroundColor: '#F0D2D2',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  가입하기
-                </button>
-                <button
-                  style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
                     backgroundColor: '#DDEAEF',
                     border: 'none',
                     borderRadius: '20px',
@@ -694,19 +761,7 @@ const Club_PR: NextPage = () => {
                 <MainTitle>{club_name}</MainTitle>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
-                    backgroundColor: '#F0D2D2',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  가입하기
-                </button>
+                <JoinState/>
                 <button
                   style={{
                     cursor: 'pointer',
@@ -739,6 +794,42 @@ const Club_PR: NextPage = () => {
   }
 
   if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id != undefined)) {
+
+    const JoinState: any = () => {
+      if (data1.opened == true) {
+        return (
+          <button
+                  style={{
+                    cursor: 'pointer',
+                    width: '150px',
+                    height: '45px',
+                    backgroundColor: '#F0D2D2',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                onClick={() => JoinClubClick()}>
+                  가입하기
+                </button>
+        )
+      }
+
+      else {
+        return (
+          <button
+                  style={{
+                    width: '150px',
+                    height: '45px',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  가입불가
+                </button>
+        )
+      }
+    }
 
     let feedList: JSX.Element[];
     feedList = data3.map((feed: FeedItem) => (
@@ -893,19 +984,7 @@ const Club_PR: NextPage = () => {
               <MainTitle>{club_name}</MainTitle>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                style={{
-                  cursor: 'pointer',
-                  width: '150px',
-                  height: '45px',
-                  backgroundColor: '#F0D2D2',
-                  border: 'none',
-                  borderRadius: '20px',
-                  fontWeight: 'bold',
-                }}
-              >
-                가입하기
-              </button>
+              <JoinState/>
               <button
                 style={{
                   cursor: 'pointer',
