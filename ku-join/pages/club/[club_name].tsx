@@ -273,7 +273,7 @@ const Club_PR: NextPage = () => {
                     borderRadius: '20px',
                     fontWeight: 'bold',
                   }}
-                >
+                onClick={() => alert("현재는 모집기간이 아닙니다.")}>
                   가입불가
                 </button>
         )
@@ -469,7 +469,16 @@ const Club_PR: NextPage = () => {
                     borderRadius: '20px',
                     fontWeight: 'bold',
                   }}
-                  onClick={() => alert(clubname+'의 동아리원입니다. 채팅 채널로 입장 가능합니다.')}>
+                  onClick={() => router.push(
+                    {
+                      pathname: './chat/[club_name]',
+                      query: {
+                        club_name: club_name,
+                        club_id: club_id
+                      },
+                    },
+                    './chat/[club_name]'
+                  )}>
                   입장하기
                 </button>
               </div>
@@ -620,7 +629,16 @@ const Club_PR: NextPage = () => {
                     borderRadius: '20px',
                     fontWeight: 'bold',
                   }}
-                  onClick={() => alert(clubname+'의 동아리원입니다. 채팅 채널로 입장 가능합니다.')}>
+                  onClick={() => router.push(
+                    {
+                      pathname: './chat/[club_name]',
+                      query: {
+                        club_name: club_name,
+                        club_id: club_id
+                      },
+                    },
+                    './chat/[club_name]'
+                  )}>
                   입장하기
                 </button>
               </div>
@@ -824,7 +842,7 @@ const Club_PR: NextPage = () => {
                     borderRadius: '20px',
                     fontWeight: 'bold',
                   }}
-                >
+                  onClick={() => alert("현재는 모집기간이 아닙니다.")}>
                   가입불가
                 </button>
         )
