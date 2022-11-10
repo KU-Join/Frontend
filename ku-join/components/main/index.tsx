@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ScrollContainer from 'react-indiana-drag-scroll';
+import LoadingSpinner from '../../public/Spinner.gif';
+import Image from 'next/image'
 
 import {
   Container,
@@ -36,6 +38,7 @@ import Modal from 'react-modal';
 import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
 import { MdHeadset } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
+import { AiFillCloseSquare } from 'react-icons/ai'
 
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
@@ -205,13 +208,42 @@ const MainLayout = () => {
 
   const {data: data4, isLoading: isLoading4, error: error4} = useQuery(['friends'], getFriendList)
 
-  if (isLoading1) return <div>'Loading...'</div>;
+  if (isLoading1) {
+    return (
+      <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+        <Image src={LoadingSpinner}/>
+        <div>Loading...</div>
+      </div>
+      )
+  }
+  
 
-  if (isLoading2) return <div>'Loading...'</div>;
+  if (isLoading2) {
+    return (
+      <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+        <Image src={LoadingSpinner}/>
+        <div>Loading...</div>
+      </div>
+      )
+  }
 
-  if (isLoading3) return <div>'Loading...'</div>;
+  if (isLoading3) {
+    return (
+      <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+        <Image src={LoadingSpinner}/>
+        <div>Loading...</div>
+      </div>
+      )
+  }
 
-  if (isLoading4) return <div>'Loading...'</div>;
+  if (isLoading4) {
+    return (
+      <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+        <Image src={LoadingSpinner}/>
+        <div>Loading...</div>
+      </div>
+      )
+  }
 
   if (error1) return <div>'Error..'</div>;
 
@@ -730,6 +762,9 @@ const MainLayout = () => {
                 }}
               >
                 <form>
+                  <div style={{display: 'flex', justifyContent: "right", width: "500px"}}>
+                    <AiFillCloseSquare onClick={() => setModalIsOpen(false)} style={{cursor: "pointer", width: "50px", height: "50px"}}/>
+                  </div>
                   <div
                     style={{
                       display: 'flex',
@@ -739,9 +774,6 @@ const MainLayout = () => {
                       gap: '50px',
                     }}
                   >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
                     <p style={{ color: '#b72929', textAlign: 'left' }}>
                       친구로 추가할 분의 아이디를 입력해주세요.
                     </p>
@@ -993,6 +1025,9 @@ const MainLayout = () => {
                 }}
               >
                 <form>
+                  <div style={{display: 'flex', justifyContent: "right", width: "500px"}}>
+                    <AiFillCloseSquare onClick={() => setModalIsOpen(false)} style={{cursor: "pointer", width: "50px", height: "50px"}}/>
+                  </div>
                   <div
                     style={{
                       display: 'flex',
@@ -1002,9 +1037,6 @@ const MainLayout = () => {
                       gap: '50px',
                     }}
                   >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
                     <p style={{ color: '#b72929', textAlign: 'left' }}>
                       친구로 추가할 분의 아이디를 입력해주세요.
                     </p>
@@ -1727,6 +1759,9 @@ const MainLayout = () => {
                 }}
               >
                 <form>
+                  <div style={{display: 'flex', justifyContent: "right", width: "500px"}}>
+                    <AiFillCloseSquare onClick={() => setModalIsOpen(false)} style={{cursor: "pointer", width: "50px", height: "50px"}}/>
+                  </div>
                   <div
                     style={{
                       display: 'flex',
@@ -1736,9 +1771,6 @@ const MainLayout = () => {
                       gap: '50px',
                     }}
                   >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
                     <p style={{ color: '#b72929', textAlign: 'left' }}>
                       친구로 추가할 분의 아이디를 입력해주세요.
                     </p>
@@ -1991,6 +2023,9 @@ const MainLayout = () => {
                 }}
               >
                 <form>
+                  <div style={{display: 'flex', justifyContent: "right", width: "500px"}}>
+                    <AiFillCloseSquare onClick={() => setModalIsOpen(false)} style={{cursor: "pointer", width: "50px", height: "50px"}}/>
+                  </div>
                   <div
                     style={{
                       display: 'flex',
@@ -2000,9 +2035,6 @@ const MainLayout = () => {
                       gap: '50px',
                     }}
                   >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
                     <p style={{ color: '#b72929', textAlign: 'left' }}>
                       친구로 추가할 분의 아이디를 입력해주세요.
                     </p>

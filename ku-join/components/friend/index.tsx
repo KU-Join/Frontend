@@ -1,4 +1,6 @@
 import React, {useState} from 'react';
+import LoadingSpinner from '../../public/Spinner.gif';
+import Image from 'next/image'
 
 import {
     Container,
@@ -120,9 +122,23 @@ const FriendLayout = () => {
     const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['friends'], getFriendList)
     const {data: data2, isLoading: isLoading2, error: error2} = useQuery(['friendrequest'], getRequestFriendList)
 
-    if (isLoading1) return <div>'Loading...</div>
+    if (isLoading1) {
+        return (
+            <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+              <Image src={LoadingSpinner}/>
+              <div>Loading...</div>
+            </div>
+        )    
+    }
 
-    if (isLoading2) return <div>'Loading...</div>
+    if (isLoading2) {
+        return (
+            <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+              <Image src={LoadingSpinner}/>
+              <div>Loading...</div>
+            </div>
+        )
+    }
 
     if (error1) return <div>'error..'</div>
 
