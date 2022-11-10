@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
+import LoadingSpinner from '../../public/Spinner.gif';
+import Image from 'next/image'
 
 import {
     Container,
@@ -156,9 +158,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const {data: data2, isLoading: isLoading2, error: error2} = useQuery(['Chat'], getChatContent);
 
-  if (isLoading1) return <div>'Loading...'</div>
+  if (isLoading1) 
+  {
+    return (
+        <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+          <Image src={LoadingSpinner}/>
+          <div>Loading...</div>
+        </div>
+    )
+  }
 
-  if (isLoading2) return <div>'Loading...'</div>
+  if (isLoading2) {
+    return (
+        <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "100vw", height: "100vh"}}>
+          <Image src={LoadingSpinner}/>
+          <div>Loading...</div>
+        </div>
+    )
+  }
 
   if (error1) return <div>'Error..</div>
 
@@ -207,13 +224,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                   <div style={{height: "90vh"}}>
                       <div style={{backgroundColor: "#202225", fontSize: "1.5rem", padding: "10px", textAlign: "left", color: "gray"}}># {club_name} 채팅방</div>
                       <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                          <div>
-                              <div style={{padding: "10px"}}>
-                                  <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>test1234</div>
-                                  <div style={{textAlign: "left", color: "#878A8F"}}>message</div>
-                              </div>
-                              <div>채팅 내역이 없습니다.</div>
-                          </div>
+                            <div style={{color: "#878A8F", paddingTop: "30px"}}>채팅 내역이 없습니다.</div>
                       </ScrollContainer>
                   </div>
                   <div style={{color: "white", height: "7vh", padding: "10px", display: "flex", gap: "10px"}}>
@@ -226,82 +237,82 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                   {noticeIsOpen &&
                   <div>
                       <div style={{display: "flex", justifyContent: "center", gap: "40px", padding: "20px 0"}}>
-                          <p style={{fontWeight: "bold"}}>공지</p>
+                          <p style={{fontWeight: "bold", borderBottom: "1px solid black"}}>공지</p>
                           <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>사진</p>
                       </div>
                       <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>공지합니다.</p>
-                      </div>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>공지합니다.</p>
-                      </div>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>공지합니다.</p>
-                      </div>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>공지합니다.</p>
-                      </div>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>공지합니다.</p>
-                      </div>
-                      <div style={{
-                      width: '300px',
-                      borderRadius: '5px',
-                      backgroundColor: 'gray',
-                      textAlign: 'center',
-                      margin: '20px auto',
-                      }}>
-                          <p>2022-10-XX</p>
-                          <p>김아무개</p>
-                          <br/>
-                          <p>!!!!!!!!공지합니다.</p>
-                      </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
                       </ScrollContainer>
                       <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
                   </div>
@@ -310,117 +321,117 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                   <div>
                       <div style={{display: "flex", justifyContent: "center", gap: "40px", padding: "20px 0"}}>
                           <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>공지</p>
-                          <p style={{fontWeight: "bold"}}>사진</p>
+                          <p style={{fontWeight: "bold", borderBottom: "1px solid black"}}>사진</p>
                       </div>
                       <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                          <div
-                          style={{
-                          width: '300px',
-                          borderRadius: '5px',
-                          backgroundColor: 'gray',
-                          textAlign: 'center',
-                          margin: '20px auto',
-                          }}
-                      >
-                          <img
-                          src="https://img.icons8.com/ios/200/null/window-settings.png"
-                          style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                          }}
-                          alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                          <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                              a
-                          </p>
-                          <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
-                          </div>
-                          </div>
-                          <div
-                          style={{
-                          width: '300px',
-                          borderRadius: '5px',
-                          backgroundColor: 'gray',
-                          textAlign: 'center',
-                          margin: '20px auto',
-                          }}
-                      >
-                          <img
-                          src="https://img.icons8.com/ios/200/null/window-settings.png"
-                          style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                          }}
-                          alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                          <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                              a
-                          </p>
-                          <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
-                          </div>
-                          </div>
-                          <div
-                          style={{
-                          width: '300px',
-                          borderRadius: '5px',
-                          backgroundColor: 'gray',
-                          textAlign: 'center',
-                          margin: '20px auto',
-                          }}
-                      >
-                          <img
-                          src="https://img.icons8.com/ios/200/null/window-settings.png"
-                          style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                          }}
-                          alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                          <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                              a
-                          </p>
-                          <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
-                          </div>
-                          </div>
-                          <div
-                          style={{
-                          width: '300px',
-                          borderRadius: '5px',
-                          backgroundColor: 'gray',
-                          textAlign: 'center',
-                          margin: '20px auto',
-                          }}
-                      >
-                          <img
-                          src="https://img.icons8.com/ios/200/null/window-settings.png"
-                          style={{
-                              width: '300px',
-                              height: '400px',
-                              borderTopLeftRadius: '5px',
-                              borderTopRightRadius: '5px',
-                              objectFit: 'cover',
-                          }}
-                          alt=""
-                          />
-                          <div style={{ textAlign: 'left', padding: '10px' }}>
-                          <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                              a
-                          </p>
-                          <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
-                          </div>
-                          </div>
+                        <div
+                            style={{
+                            width: '300px',
+                            borderRadius: '5px',
+                            textAlign: 'center',
+                            margin: '20px auto',
+                            border: '1px solid gray'
+                            }}
+                        >
+                            <img
+                            src="https://img.icons8.com/ios/200/null/window-settings.png"
+                            style={{
+                                width: '300px',
+                                height: '400px',
+                                borderTopLeftRadius: '5px',
+                                borderTopRightRadius: '5px',
+                                objectFit: 'cover',
+                            }}
+                            alt=""
+                            />
+                            <div style={{ textAlign: 'left', padding: '10px' }}>
+                            <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                                사진제목
+                            </p>
+                            <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
+                            </div>
+                            </div>
+                            <div
+                            style={{
+                            width: '300px',
+                            borderRadius: '5px',
+                            textAlign: 'center',
+                            margin: '20px auto',
+                            border: '1px solid gray'
+                            }}
+                        >
+                            <img
+                            src="https://img.icons8.com/ios/200/null/window-settings.png"
+                            style={{
+                                width: '300px',
+                                height: '400px',
+                                borderTopLeftRadius: '5px',
+                                borderTopRightRadius: '5px',
+                                objectFit: 'cover',
+                            }}
+                            alt=""
+                            />
+                            <div style={{ textAlign: 'left', padding: '10px' }}>
+                            <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                                사진제목
+                            </p>
+                            <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
+                            </div>
+                            </div>
+                            <div
+                            style={{
+                            width: '300px',
+                            borderRadius: '5px',
+                            textAlign: 'center',
+                            margin: '20px auto',
+                            border: '1px solid gray'
+                            }}
+                        >
+                            <img
+                            src="https://img.icons8.com/ios/200/null/window-settings.png"
+                            style={{
+                                width: '300px',
+                                height: '400px',
+                                borderTopLeftRadius: '5px',
+                                borderTopRightRadius: '5px',
+                                objectFit: 'cover',
+                            }}
+                            alt=""
+                            />
+                            <div style={{ textAlign: 'left', padding: '10px' }}>
+                            <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                                사진제목
+                            </p>
+                            <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
+                            </div>
+                            </div>
+                            <div
+                            style={{
+                            width: '300px',
+                            borderRadius: '5px',
+                            textAlign: 'center',
+                            margin: '20px auto',
+                            border: '1px solid gray'
+                            }}
+                        >
+                            <img
+                            src="https://img.icons8.com/ios/200/null/window-settings.png"
+                            style={{
+                                width: '300px',
+                                height: '400px',
+                                borderTopLeftRadius: '5px',
+                                borderTopRightRadius: '5px',
+                                objectFit: 'cover',
+                            }}
+                            alt=""
+                            />
+                            <div style={{ textAlign: 'left', padding: '10px' }}>
+                            <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                                사진제목
+                            </p>
+                            <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
+                            </div>
+                            </div>
                       </ScrollContainer>
                       <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
                   </div>
@@ -443,11 +454,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
     let ChatList: JSX.Element[];
         ChatList = data2.map((Chat: ChatContent) => (
-            <div key={Chat.id}>
+            <div key={Chat.id} style={{padding: "10px"}}>
                 {Chat.userName !== userData.userName && 
-                <div>다른 사람 {Chat.userName} {Chat.content}</div>}
+                <div style={{display: "flex", flexDirection: "column", gap: "5px"}}>
+                    <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>{Chat.userName}</div>
+                    <div style={{textAlign: "left", color: "#878A8F"}}>{Chat.content}</div>
+                </div>}
                 {Chat.userName == userData.userName && 
-                <div>{Chat.userName} {Chat.content}</div>}
+                <div style={{display: "flex", flexDirection: "column", gap: "5px"}}>
+                    <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>{Chat.userName} [나]</div>
+                    <div style={{textAlign: "left", color: "#878A8F"}}>{Chat.content}</div>
+                </div>}
             </div>
         ))
     
@@ -484,13 +501,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                 <div style={{height: "90vh"}}>
                     <div style={{backgroundColor: "#202225", fontSize: "1.5rem", padding: "10px", textAlign: "left", color: "gray"}}># {club_name} 채팅방</div>
                     <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                        <div>
-                            <div style={{padding: "10px"}}>
-                                <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>test1234</div>
-                                <div style={{textAlign: "left", color: "#878A8F"}}>message</div>
-                            </div>
-                            <div>{ChatList}</div>
-                        </div>
+                        <div>{ChatList}</div>
                     </ScrollContainer>
                 </div>
                 <div style={{color: "white", height: "7vh", padding: "10px", display: "flex", gap: "10px"}}>
@@ -507,78 +518,78 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>사진</p>
                     </div>
                     <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>공지합니다.</p>
-                    </div>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>공지합니다.</p>
-                    </div>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>공지합니다.</p>
-                    </div>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>공지합니다.</p>
-                    </div>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>공지합니다.</p>
-                    </div>
-                    <div style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'gray',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                    }}>
-                        <p>2022-10-XX</p>
-                        <p>김아무개</p>
-                        <br/>
-                        <p>!!!!!!!!공지합니다.</p>
-                    </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
+                        <div style={{
+                        width: '300px',
+                        borderRadius: '5px',
+                        textAlign: 'center',
+                        margin: '20px auto',
+                        border: "1px solid gray",
+                        padding: "10px"
+                        }}>
+                            <p style={{fontSize: "1.25rem", textAlign: "left", fontWeight: "bold"}}>동아리장</p>
+                            <br/>
+                            <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
+                        </div>
                     </ScrollContainer>
                     <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
                 </div>
@@ -594,9 +605,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         style={{
                         width: '300px',
                         borderRadius: '5px',
-                        backgroundColor: 'gray',
                         textAlign: 'center',
                         margin: '20px auto',
+                        border: '1px solid gray'
                         }}
                     >
                         <img
@@ -612,18 +623,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         />
                         <div style={{ textAlign: 'left', padding: '10px' }}>
                         <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                            a
+                            사진제목
                         </p>
-                        <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
+                        <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
                         </div>
                         </div>
                         <div
                         style={{
                         width: '300px',
                         borderRadius: '5px',
-                        backgroundColor: 'gray',
                         textAlign: 'center',
                         margin: '20px auto',
+                        border: '1px solid gray'
                         }}
                     >
                         <img
@@ -639,18 +650,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         />
                         <div style={{ textAlign: 'left', padding: '10px' }}>
                         <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                            a
+                            사진제목
                         </p>
-                        <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
+                        <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
                         </div>
                         </div>
                         <div
                         style={{
                         width: '300px',
                         borderRadius: '5px',
-                        backgroundColor: 'gray',
                         textAlign: 'center',
                         margin: '20px auto',
+                        border: '1px solid gray'
                         }}
                     >
                         <img
@@ -666,18 +677,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         />
                         <div style={{ textAlign: 'left', padding: '10px' }}>
                         <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                            a
+                            사진제목
                         </p>
-                        <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
+                        <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
                         </div>
                         </div>
                         <div
                         style={{
                         width: '300px',
                         borderRadius: '5px',
-                        backgroundColor: 'gray',
                         textAlign: 'center',
                         margin: '20px auto',
+                        border: '1px solid gray'
                         }}
                     >
                         <img
@@ -693,9 +704,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         />
                         <div style={{ textAlign: 'left', padding: '10px' }}>
                         <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                            a
+                            사진제목
                         </p>
-                        <p style={{ fontSize: '8px', color: '#333333' }}>ㅎ</p>
+                        <p style={{ fontSize: '8px', color: '#333333' }}>사진설명</p>
                         </div>
                         </div>
                     </ScrollContainer>

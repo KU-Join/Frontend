@@ -4,6 +4,7 @@ import { Container, Form, WrapForm, DuplicateBtn, Input, LabelID, InputID, Label
 import { useRouter } from 'next/router';
 import Modal from 'react-modal'
 import { MdAlternateEmail } from 'react-icons/md';
+import { AiFillCloseSquare } from 'react-icons/ai'
 
 const SignUpForm = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -158,8 +159,10 @@ const SignUpForm = () => {
     (props, children) => 
     <div key={person.signup_id} style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", width: "700px", height: "500px"}}> 
     <form>
+      <div style={{display: 'flex', justifyContent: "right", width: "500px"}}>
+        <AiFillCloseSquare onClick={() => setModalIsOpen(false)} style={{cursor: "pointer", width: "50px", height: "50px"}}/>
+      </div>
       <div style={{display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "50px"}}>
-        <button onClick={()=>setModalIsOpen(false)}>(임시)닫는 버튼</button>
         <p style={{color: "#b72929", textAlign: "left"}}>건국대 포털로 인증번호를 보냈습니다.<br/>인증번호를 입력해주세요.</p>
         <input type="text" id="verify_code" name="verify_code" placeholder="" onChange={handleInputCodeChange} style={{borderTop: "none", borderLeft: "none", borderRight: "none", backgroundColor: "none", width: "250px"}}></input>
         <Input type="button" value="제출" onClick={SendCode} style={{cursor: "pointer", width: "150px", height: "45px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px"}}></Input>
