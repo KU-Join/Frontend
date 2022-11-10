@@ -116,10 +116,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   stompClient.heartbeat.outgoing = 20000; // client will send heartbeats every 20000ms
   stompClient.heartbeat.incoming = 0; 
-
   const onConnected = () => {
     console.log("연결 성공")
-    stompClient.subscribe('/topic/public', onPublicMessageReceived);
+    stompClient.subscribe('/topic/'+userData.clubName, onPublicMessageReceived);
   }
 
   const onError = (err:any) => {
@@ -127,7 +126,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
   }
   
   const onPublicMessageReceived = (payload:any) => {
-    console.log(payload)
+    alert(payload)
     let payloadData = JSON.parse(payload.body);
     publicChats.push(payloadData);
     setpublicChats([...publicChats])
