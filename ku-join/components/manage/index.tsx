@@ -95,6 +95,12 @@ type ClubMemberItem = {
   leader: boolean;
 }
 
+type FriendListItem = {
+  email : string;
+  nickname : string;
+  state : string;
+}
+
 
 const ManagementLayout = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
@@ -108,6 +114,10 @@ const ManagementLayout = () => {
   const userID = sessionStorage.getItem('id');
 
   const userid = userID as string;
+
+  const [friendID, setFriendID] = useState({
+    friendid: '',
+  });
 
   const Username: any = () => {
     if (typeof window !== 'undefined') {
@@ -127,6 +137,31 @@ const ManagementLayout = () => {
     e.preventDefault();
     router.push('./');
   };
+
+  const handleFriendIDInputChange = (e: any) => {
+    setFriendID({ ...friendID, [e.target.name]: e.target.value});
+  };
+
+  const friendRequestSubmit = (e:any) => {
+    e.preventDefault();
+    const userID = sessionStorage.getItem('id');
+
+    fetch(API_URL + "/member-service/friends", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": API_URL,
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: userID + "@konkuk.ac.kr",
+        friendEmail: friendID.friendid + "@konkuk.ac.kr"
+      })
+    })
+    .then((response) => {
+      response.status == 200 ? alert("요청 성공") : alert("요청 실패")
+    })
+  }
 
   const [files, setFiles] = useState<any>([]);
 
@@ -221,6 +256,13 @@ const ManagementLayout = () => {
 
   const [RecruitIsOpen2, setRecruitIsOpen2] = useState(false);
 
+  const getFriendList = async (): Promise<FriendListItem[]> => {
+    const userID = sessionStorage.getItem('id');
+    return await (
+      await fetch(API_URL + '/member-service/friends?email=' + userID + '@konkuk.ac.kr')
+    ).json();
+};
+
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
     const userID = sessionStorage.getItem('id');
     return await (
@@ -270,6 +312,8 @@ const ManagementLayout = () => {
 
   const {data: data7, isLoading: isLoading7, error: error7} = useQuery(['ClubMember'], getClubMemberList);
 
+  const {data: data8, isLoading: isLoading8, error: error8} = useQuery(['friends'], getFriendList)
+
   if (isLoading1) return <div>'Loading...'</div>;
 
   if (isLoading2) return <div>'Loading...'</div>;
@@ -283,6 +327,8 @@ const ManagementLayout = () => {
   if (isLoading6) return <div>'Loading...'</div>;
 
   if (isLoading7) return <div>'Loading...'</div>;
+
+  if (isLoading8) return <div>'Loading...'</div>;
 
   if (error1) return <div>'Error..'</div>;
 
@@ -298,13 +344,15 @@ const ManagementLayout = () => {
 
   if (error7) return <div>'Error..'</div>;
 
+  if (error8) return <div>'Error..'</div>;
+
   /* 동아리 만들자마자 리더는 동아리에 가입이 된 상태이기 때문에 가입된 동아리 목록이 0개로 뜰 수 없기에 삭제. 
   구분해야하는 것은 피드가 0개 일 때 추가해주고(data4) 동아리 신청자 목록 0개일 때(data6) 아닐 때(data5) 구분해서 추가해주고. 동아리원 목록(data7)은 리더가 있기 때문에 따로 구분할 필요 없음*/
   //data4는 우선 제외. 홍보게시판에서도 큰 오류없이 넘어감.
 
 
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id == undefined) ) {
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id == undefined) && (data8 != undefined)) {
 
     if (data1.opened == true) {
       const EditClubInfo = () => {
@@ -406,52 +454,54 @@ const ManagementLayout = () => {
           <Button>탈퇴</Button>
         </div>
       ))
-  
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+
+      if (data8.length == 0) {
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="verify_code"
-                      name="verify_code"
+                      id="friendid"
+                      name="friendid"
                       placeholder=""
                       style={{
                         borderTop: 'none',
@@ -460,10 +510,10 @@ const ManagementLayout = () => {
                         backgroundColor: 'none',
                         width: '250px',
                       }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                    <Input
-                      type="button"
-                      value="제출"
+                      <button
                       style={{
                         cursor: 'pointer',
                         width: '150px',
@@ -472,240 +522,550 @@ const ManagementLayout = () => {
                         border: 'none',
                         borderRadius: '20px',
                       }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <Modal
-            isOpen={clubFeedModalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setClubFeedModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
-                      피드 추가
-                    </p>
-                    <WrapForm>
-                      <LabelMainImage2>피드 이미지</LabelMainImage2>
-                      <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
-                      <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
-                      <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
-                      <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
-                      <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
-                    </WrapForm>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                      onClick={handleFeedSubmit}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black', cursor: 'pointer' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <ScrollContainer
-              style={{ height: '85vh' }}
-              horizontal={false}
-              ignoreElements="input"
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  maxHeight: '400px',
-                  gap: '10px',
-                  flexDirection: 'column',
-                }}
-              >
-                <WrapTitle>
-                  <MainTitle>동아리 관리</MainTitle>
-                </WrapTitle>
-                <LeaderWithClubName>
-                  {userID} 님은 현재 {club_name}의 동아리장입니다.
-                </LeaderWithClubName>
-                <WrapTab
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
                 >
-                  <TabTitle>동아리 가입 활성화</TabTitle>
-                  <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 가입 승인
-                  </TabTitle>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
-                  >
-                    {JoinPersonList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리원 관리
-                  </TabTitle>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                    {MemberList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 홍보 관리
-                  </TabTitle>
-                  <WrapSubTab>
-                    <TabSubTitle>대표 이미지</TabSubTitle>
+                  <form>
                     <div
                       style={{
                         display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
+                        flexDirection: 'column',
                         justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
                       }}
                     >
-                      <InputFind
-                        ref={inputRef}
-                        placeholder={data1.club_img}
-                        disabled={true}
-                        style={{ width: '300px' }}
-                      ></InputFind>
-                      <FindLabelMainImage
-                        htmlFor="file"
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
                         style={{
-                          width: '100px',
-                          height: '30px',
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
                           backgroundColor: '#F1EEEE',
                           border: 'none',
                           borderRadius: '20px',
-                          paddingTop: '6px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {JoinPersonList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        파일찾기
-                      </FindLabelMainImage>
-                      <InputMainImage
-                        type="file"
-                        id="file"
-                        accept="image/*"
-                        onChange={SaveFileImage}
-                        style={{ display: 'none' }}
-                      ></InputMainImage>
-                    </div>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>소개</TabSubTitle>
-                    <input
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+
+      else {
+
+        let FriendList: JSX.Element[];
+                FriendList = data8.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="comment"
-                      name="comment"
-                      value={introduction.comment}
-                      onChange={handleInputChange}
-                      placeholder={data1.club_description}
-                      style={{ width: '400px' }}
-                      maxLength={30}
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>피드</TabSubTitle>
-                    <div>
-                      <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                          {feedList}
-                      </ScrollContainer>
+                      <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
                     </div>
-                    <Button onClick={() => {
-                      setClubFeedModalIsOpen(true);
-                    }}>피드 추가</Button>
-                  </WrapSubTab>
-                </WrapTab>
-                <WrapTab>
-                  <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
-                </WrapTab>
-              </div>
-            </ScrollContainer>
-          </Contents>
-        </Container>
-      );
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
+                        style={{
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
+                          backgroundColor: '#F1EEEE',
+                          border: 'none',
+                          borderRadius: '20px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div>{FriendList}</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {JoinPersonList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+  
     }
 
     else {
+
       const EditClubInfo = () => {
 
         const formData = new FormData();
@@ -805,52 +1165,53 @@ const ManagementLayout = () => {
           <Button>탈퇴</Button>
         </div>
       ))
-  
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+
+      if (data8.length == 0) {
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="verify_code"
-                      name="verify_code"
+                      id="friendid"
+                      name="friendid"
                       placeholder=""
                       style={{
                         borderTop: 'none',
@@ -859,10 +1220,10 @@ const ManagementLayout = () => {
                         backgroundColor: 'none',
                         width: '250px',
                       }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                    <Input
-                      type="button"
-                      value="제출"
+                      <button
                       style={{
                         cursor: 'pointer',
                         width: '150px',
@@ -871,243 +1232,551 @@ const ManagementLayout = () => {
                         border: 'none',
                         borderRadius: '20px',
                       }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <Modal
-            isOpen={clubFeedModalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setClubFeedModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
-                      피드 추가
-                    </p>
-                    <WrapForm>
-                      <LabelMainImage2>피드 이미지</LabelMainImage2>
-                      <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
-                      <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
-                      <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
-                      <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
-                      <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
-                    </WrapForm>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                      onClick={handleFeedSubmit}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black', cursor: 'pointer' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <ScrollContainer
-              style={{ height: '85vh' }}
-              horizontal={false}
-              ignoreElements="input"
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  maxHeight: '400px',
-                  gap: '10px',
-                  flexDirection: 'column',
-                }}
-              >
-                <WrapTitle>
-                  <MainTitle>동아리 관리</MainTitle>
-                </WrapTitle>
-                <LeaderWithClubName>
-                  {userID} 님은 현재 {club_name}의 동아리장입니다.
-                </LeaderWithClubName>
-                <WrapTab
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
                 >
-                  <TabTitle>동아리 가입 활성화</TabTitle>
-                  <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 가입 승인
-                  </TabTitle>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
-                  >
-                    {JoinPersonList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리원 관리
-                  </TabTitle>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                    {MemberList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 홍보 관리
-                  </TabTitle>
-                  <WrapSubTab>
-                    <TabSubTitle>대표 이미지</TabSubTitle>
+                  <form>
                     <div
                       style={{
                         display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
+                        flexDirection: 'column',
                         justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
                       }}
                     >
-                      <InputFind
-                        ref={inputRef}
-                        placeholder={data1.club_img}
-                        disabled={true}
-                        style={{ width: '300px' }}
-                      ></InputFind>
-                      <FindLabelMainImage
-                        htmlFor="file"
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
                         style={{
-                          width: '100px',
-                          height: '30px',
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
                           backgroundColor: '#F1EEEE',
                           border: 'none',
                           borderRadius: '20px',
-                          paddingTop: '6px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {JoinPersonList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        파일찾기
-                      </FindLabelMainImage>
-                      <InputMainImage
-                        type="file"
-                        id="file"
-                        accept="image/*"
-                        onChange={SaveFileImage}
-                        style={{ display: 'none' }}
-                      ></InputMainImage>
-                    </div>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>소개</TabSubTitle>
-                    <input
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+
+      else {
+
+        let FriendList: JSX.Element[];
+                FriendList = data8.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+        
+                return (
+                  <Container>
+                    <Modal
+                      isOpen={modalIsOpen}
+                      ariaHideApp={false}
+                      style={{
+                        overlay: {
+                          margin: 'auto',
+                          width: '700px',
+                          height: '500px',
+                          backgroundColor: 'white',
+                          borderRadius: '20px',
+                        },
+                      }}
+                      contentElement={(props, children) => (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '700px',
+                            height: '500px',
+                          }}
+                        >
+                          <form>
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '50px',
+                              }}
+                            >
+                              <button onClick={() => setModalIsOpen(false)}>
+                                (임시)닫는 버튼
+                              </button>
+                              <p style={{ color: '#b72929', textAlign: 'left' }}>
+                                친구로 추가할 분의 아이디를 입력해주세요.
+                              </p>
+                              <input
                       type="text"
-                      id="comment"
-                      name="comment"
-                      value={introduction.comment}
-                      onChange={handleInputChange}
-                      placeholder={data1.club_description}
-                      style={{ width: '400px' }}
-                      maxLength={30}
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>피드</TabSubTitle>
-                    <div>
-                      <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                          {feedList}
+                              <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+                    ></Modal>
+                    <Modal
+                      isOpen={clubFeedModalIsOpen}
+                      ariaHideApp={false}
+                      style={{
+                        overlay: {
+                          margin: 'auto',
+                          width: '700px',
+                          height: '500px',
+                          backgroundColor: 'white',
+                          borderRadius: '20px',
+                        },
+                      }}
+                      contentElement={(props, children) => (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '700px',
+                            height: '500px',
+                          }}
+                        >
+                          <form>
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '50px',
+                              }}
+                            >
+                              <button onClick={() => setClubFeedModalIsOpen(false)}>
+                                (임시)닫는 버튼
+                              </button>
+                              <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                                피드 추가
+                              </p>
+                              <WrapForm>
+                                <LabelMainImage2>피드 이미지</LabelMainImage2>
+                                <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                                <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                                <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                                <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                                <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                              </WrapForm>
+                              <Input
+                                type="button"
+                                value="제출"
+                                style={{
+                                  cursor: 'pointer',
+                                  width: '150px',
+                                  height: '45px',
+                                  backgroundColor: '#F1EEEE',
+                                  border: 'none',
+                                  borderRadius: '20px',
+                                }}
+                                onClick={handleFeedSubmit}
+                              ></Input>
+                            </div>
+                          </form>
+                        </div>
+                      )}
+                    ></Modal>
+                    <WrapContents>
+                      <UserInfo>
+                        <Logo>
+                          <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                          <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                            JOIN
+                          </LogoTitle>
+                        </Logo>
+                        <WrapFriendList>
+                          <WrapFriendListTitle>
+                            <ContentTitle>친구</ContentTitle>
+                            <BsPlusLg
+                              style={{ color: 'black', cursor: 'pointer' }}
+                              onClick={() => {
+                                setModalIsOpen(true);
+                              }}
+                            />
+                          </WrapFriendListTitle>
+                          <div>{FriendList}</div>
+                        </WrapFriendList>
+                        <WrapJoinedClub>
+                          <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                          <div>{usersClubListName}</div>
+                        </WrapJoinedClub>
+                      </UserInfo>
+                      <WrapUserStatus>
+                        <UserProfile>
+                          <UserImg />
+                          <Username />
+                        </UserProfile>
+                        <UserStatus>
+                          <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                          <MdHeadset style={{ color: '#B9BBBE' }} />
+                          <RiSettings2Fill
+                            style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                            onClick={() => router.push('../../setup')}
+                          />
+                        </UserStatus>
+                      </WrapUserStatus>
+                    </WrapContents>
+                    <Contents>
+                      <ScrollContainer
+                        style={{ height: '85vh' }}
+                        horizontal={false}
+                        ignoreElements="input"
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            maxHeight: '400px',
+                            gap: '10px',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <WrapTitle>
+                            <MainTitle>동아리 관리</MainTitle>
+                          </WrapTitle>
+                          <LeaderWithClubName>
+                            {userID} 님은 현재 {club_name}의 동아리장입니다.
+                          </LeaderWithClubName>
+                          <WrapTab
+                            style={{ display: 'flex', justifyContent: 'space-between' }}
+                          >
+                            <TabTitle>동아리 가입 활성화</TabTitle>
+                            <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
+                          </WrapTab>
+                          <WrapTab>
+                            <TabTitle style={{ marginBottom: '20px' }}>
+                              동아리 가입 승인
+                            </TabTitle>
+                            <div
+                              style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                            >
+                              {JoinPersonList}
+                            </div>
+                          </WrapTab>
+                          <WrapTab>
+                            <TabTitle style={{ marginBottom: '20px' }}>
+                              동아리원 관리
+                            </TabTitle>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
+                              {MemberList}
+                            </div>
+                          </WrapTab>
+                          <WrapTab>
+                            <TabTitle style={{ marginBottom: '20px' }}>
+                              동아리 홍보 관리
+                            </TabTitle>
+                            <WrapSubTab>
+                              <TabSubTitle>대표 이미지</TabSubTitle>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  gap: '10px',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <InputFind
+                                  ref={inputRef}
+                                  placeholder={data1.club_img}
+                                  disabled={true}
+                                  style={{ width: '300px' }}
+                                ></InputFind>
+                                <FindLabelMainImage
+                                  htmlFor="file"
+                                  style={{
+                                    width: '100px',
+                                    height: '30px',
+                                    backgroundColor: '#F1EEEE',
+                                    border: 'none',
+                                    borderRadius: '20px',
+                                    paddingTop: '6px',
+                                  }}
+                                >
+                                  파일찾기
+                                </FindLabelMainImage>
+                                <InputMainImage
+                                  type="file"
+                                  id="file"
+                                  accept="image/*"
+                                  onChange={SaveFileImage}
+                                  style={{ display: 'none' }}
+                                ></InputMainImage>
+                              </div>
+                            </WrapSubTab>
+                            <WrapSubTab>
+                              <TabSubTitle>소개</TabSubTitle>
+                              <input
+                                type="text"
+                                id="comment"
+                                name="comment"
+                                value={introduction.comment}
+                                onChange={handleInputChange}
+                                placeholder={data1.club_description}
+                                style={{ width: '400px' }}
+                                maxLength={30}
+                              ></input>
+                            </WrapSubTab>
+                            <WrapSubTab>
+                              <TabSubTitle>피드</TabSubTitle>
+                              <div>
+                                <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                                    {feedList}
+                                </ScrollContainer>
+                              </div>
+                              <Button onClick={() => {
+                                setClubFeedModalIsOpen(true);
+                              }}>피드 추가</Button>
+                            </WrapSubTab>
+                          </WrapTab>
+                          <WrapTab>
+                            <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                          </WrapTab>
+                        </div>
                       </ScrollContainer>
-                    </div>
-                    <Button onClick={() => {
-                      setClubFeedModalIsOpen(true);
-                    }}>피드 추가</Button>
-                  </WrapSubTab>
-                </WrapTab>
-                <WrapTab>
-                  <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
-                </WrapTab>
-              </div>
-            </ScrollContainer>
-          </Contents>
-        </Container>
-      );
+                    </Contents>
+                  </Container>
+                );
+          
+      }
+      
     }
-    
     
   }
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id != undefined)) {
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id != undefined) && (data8 != undefined)) {
 
     if (data1.opened == true) {
       const EditClubInfo = () => {
@@ -1195,52 +1864,54 @@ const ManagementLayout = () => {
                     <Button>탈퇴</Button>
                   </div>
       ))
-  
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+
+      if (data8.length == 0) {
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="verify_code"
-                      name="verify_code"
+                      id="friendid"
+                      name="friendid"
                       placeholder=""
                       style={{
                         borderTop: 'none',
@@ -1249,10 +1920,10 @@ const ManagementLayout = () => {
                         backgroundColor: 'none',
                         width: '250px',
                       }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                    <Input
-                      type="button"
-                      value="제출"
+                      <button
                       style={{
                         cursor: 'pointer',
                         width: '150px',
@@ -1261,235 +1932,543 @@ const ManagementLayout = () => {
                         border: 'none',
                         borderRadius: '20px',
                       }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <Modal
-            isOpen={clubFeedModalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setClubFeedModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
-                      피드 추가
-                    </p>
-                    <WrapForm>
-                      <LabelMainImage2>피드 이미지</LabelMainImage2>
-                      <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
-                      <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
-                      <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
-                      <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
-                      <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
-                    </WrapForm>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                      onClick={handleFeedSubmit}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black', cursor: 'pointer' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <ScrollContainer
-              style={{ height: '85vh' }}
-              horizontal={false}
-              ignoreElements="input"
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  maxHeight: '400px',
-                  gap: '10px',
-                  flexDirection: 'column',
-                }}
-              >
-                <WrapTitle>
-                  <MainTitle>동아리 관리</MainTitle>
-                </WrapTitle>
-                <LeaderWithClubName>
-                  {userID} 님은 현재 {club_name}의 동아리장입니다.
-                </LeaderWithClubName>
-                <WrapTab
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
                 >
-                  <TabTitle>동아리 가입 활성화</TabTitle>
-                  <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 가입 승인
-                  </TabTitle>
-                  <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리원 관리
-                  </TabTitle>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
-                  >
-                    {MemberList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 홍보 관리
-                  </TabTitle>
-                  <WrapSubTab>
-                    <TabSubTitle>대표 이미지</TabSubTitle>
+                  <form>
                     <div
                       style={{
                         display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
+                        flexDirection: 'column',
                         justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
                       }}
                     >
-                      <InputFind
-                        ref={inputRef}
-                        placeholder={data1.club_img}
-                        disabled={true}
-                        style={{ width: '300px' }}
-                      ></InputFind>
-                      <FindLabelMainImage
-                        htmlFor="file"
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
                         style={{
-                          width: '100px',
-                          height: '30px',
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
                           backgroundColor: '#F1EEEE',
                           border: 'none',
                           borderRadius: '20px',
-                          paddingTop: '6px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        파일찾기
-                      </FindLabelMainImage>
-                      <InputMainImage
-                        type="file"
-                        id="file"
-                        accept="image/*"
-                        onChange={SaveFileImage}
-                        style={{ display: 'none' }}
-                      ></InputMainImage>
-                    </div>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>소개</TabSubTitle>
-                    <input
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+
+      else {
+        let FriendList: JSX.Element[];
+                FriendList = data8.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+        
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="comment"
-                      name="comment"
-                      value={introduction.comment}
-                      onChange={handleInputChange}
-                      placeholder={data1.club_description}
-                      style={{ width: '400px' }}
-                      maxLength={30}
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>피드</TabSubTitle>
-                    <div>
-                      <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                          {feedList}
-                      </ScrollContainer>
+                      <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
                     </div>
-                    <Button onClick={() => {
-                      setClubFeedModalIsOpen(true);
-                    }}>피드 추가</Button>
-                  </WrapSubTab>
-                </WrapTab>
-                <WrapTab>
-                  <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
-                </WrapTab>
-              </div>
-            </ScrollContainer>
-          </Contents>
-        </Container>
-      );
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
+                        style={{
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
+                          backgroundColor: '#F1EEEE',
+                          border: 'none',
+                          borderRadius: '20px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div>{FriendList}</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen((e) => !e)}>{RecruitIsOpen ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+  
+      
     }
 
     else {
@@ -1578,52 +2557,54 @@ const ManagementLayout = () => {
                     <Button>탈퇴</Button>
                   </div>
       ))
-  
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+
+      if (data8.length == 0) {
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="verify_code"
-                      name="verify_code"
+                      id="friendid"
+                      name="friendid"
                       placeholder=""
                       style={{
                         borderTop: 'none',
@@ -1632,10 +2613,10 @@ const ManagementLayout = () => {
                         backgroundColor: 'none',
                         width: '250px',
                       }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                    <Input
-                      type="button"
-                      value="제출"
+                      <button
                       style={{
                         cursor: 'pointer',
                         width: '150px',
@@ -1644,235 +2625,543 @@ const ManagementLayout = () => {
                         border: 'none',
                         borderRadius: '20px',
                       }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <Modal
-            isOpen={clubFeedModalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setClubFeedModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
-                      피드 추가
-                    </p>
-                    <WrapForm>
-                      <LabelMainImage2>피드 이미지</LabelMainImage2>
-                      <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
-                      <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
-                      <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
-                      <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
-                      <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
-                    </WrapForm>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                      onClick={handleFeedSubmit}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black', cursor: 'pointer' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <ScrollContainer
-              style={{ height: '85vh' }}
-              horizontal={false}
-              ignoreElements="input"
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  maxHeight: '400px',
-                  gap: '10px',
-                  flexDirection: 'column',
-                }}
-              >
-                <WrapTitle>
-                  <MainTitle>동아리 관리</MainTitle>
-                </WrapTitle>
-                <LeaderWithClubName>
-                  {userID} 님은 현재 {club_name}의 동아리장입니다.
-                </LeaderWithClubName>
-                <WrapTab
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
                 >
-                  <TabTitle>동아리 가입 활성화</TabTitle>
-                  <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 가입 승인
-                  </TabTitle>
-                  <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리원 관리
-                  </TabTitle>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
-                  >
-                    {MemberList}
-                  </div>
-                </WrapTab>
-                <WrapTab>
-                  <TabTitle style={{ marginBottom: '20px' }}>
-                    동아리 홍보 관리
-                  </TabTitle>
-                  <WrapSubTab>
-                    <TabSubTitle>대표 이미지</TabSubTitle>
+                  <form>
                     <div
                       style={{
                         display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
+                        flexDirection: 'column',
                         justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
                       }}
                     >
-                      <InputFind
-                        ref={inputRef}
-                        placeholder={data1.club_img}
-                        disabled={true}
-                        style={{ width: '300px' }}
-                      ></InputFind>
-                      <FindLabelMainImage
-                        htmlFor="file"
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
                         style={{
-                          width: '100px',
-                          height: '30px',
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
                           backgroundColor: '#F1EEEE',
                           border: 'none',
                           borderRadius: '20px',
-                          paddingTop: '6px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                         }}
                       >
-                        파일찾기
-                      </FindLabelMainImage>
-                      <InputMainImage
-                        type="file"
-                        id="file"
-                        accept="image/*"
-                        onChange={SaveFileImage}
-                        style={{ display: 'none' }}
-                      ></InputMainImage>
-                    </div>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>소개</TabSubTitle>
-                    <input
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+
+      else {
+
+        let FriendList: JSX.Element[];
+                FriendList = data8.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
                       type="text"
-                      id="comment"
-                      name="comment"
-                      value={introduction.comment}
-                      onChange={handleInputChange}
-                      placeholder={data1.club_description}
-                      style={{ width: '400px' }}
-                      maxLength={30}
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
                     ></input>
-                  </WrapSubTab>
-                  <WrapSubTab>
-                    <TabSubTitle>피드</TabSubTitle>
-                    <div>
-                      <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                          {feedList}
-                      </ScrollContainer>
+                      <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
                     </div>
-                    <Button onClick={() => {
-                      setClubFeedModalIsOpen(true);
-                    }}>피드 추가</Button>
-                  </WrapSubTab>
-                </WrapTab>
-                <WrapTab>
-                  <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
-                </WrapTab>
-              </div>
-            </ScrollContainer>
-          </Contents>
-        </Container>
-      );
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <Modal
+              isOpen={clubFeedModalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setClubFeedModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: 'black', textAlign: 'left', fontWeight: "bold" }}>
+                        피드 추가
+                      </p>
+                      <WrapForm>
+                        <LabelMainImage2>피드 이미지</LabelMainImage2>
+                        <InputFind2 ref={inputRef2} placeholder='파일 이름' disabled={true}></InputFind2>
+                        <FindLabelMainImage2 htmlFor='feedfile' style={{width: "100px", height: "30px", backgroundColor: "#F1EEEE", border: "none", borderRadius: "20px", fontSize: "12px", paddingTop: "8px", textAlign: "center"}}>파일찾기</FindLabelMainImage2>
+                        <InputMainImage2 type="file" id="feedfile" accept="image/*" onChange={SaveFeedFileImage} style={{display: "none"}}></InputMainImage2>
+                        <LabelDescription2 htmlFor='feed_comment' id="feed_comment_label">피드 내용</LabelDescription2>
+                        <InputDescription2 type="text" maxLength={30} id='feed_comment' name='feed_comment' value={feed.feed_comment} onChange={handleFeedInputChange} ref={inputRef3}></InputDescription2>
+                      </WrapForm>
+                      <Input
+                        type="button"
+                        value="제출"
+                        style={{
+                          cursor: 'pointer',
+                          width: '150px',
+                          height: '45px',
+                          backgroundColor: '#F1EEEE',
+                          border: 'none',
+                          borderRadius: '20px',
+                        }}
+                        onClick={handleFeedSubmit}
+                      ></Input>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div>{FriendList}</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <ScrollContainer
+                style={{ height: '85vh' }}
+                horizontal={false}
+                ignoreElements="input"
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    maxHeight: '400px',
+                    gap: '10px',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <WrapTitle>
+                    <MainTitle>동아리 관리</MainTitle>
+                  </WrapTitle>
+                  <LeaderWithClubName>
+                    {userID} 님은 현재 {club_name}의 동아리장입니다.
+                  </LeaderWithClubName>
+                  <WrapTab
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  >
+                    <TabTitle>동아리 가입 활성화</TabTitle>
+                    <Button onClick={() => setRecruitIsOpen2((e) => !e)}>{RecruitIsOpen2 ? "비활성화하기" : "활성화하기"}</Button>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 가입 승인
+                    </TabTitle>
+                    <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리원 관리
+                    </TabTitle>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
+                    >
+                      {MemberList}
+                    </div>
+                  </WrapTab>
+                  <WrapTab>
+                    <TabTitle style={{ marginBottom: '20px' }}>
+                      동아리 홍보 관리
+                    </TabTitle>
+                    <WrapSubTab>
+                      <TabSubTitle>대표 이미지</TabSubTitle>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <InputFind
+                          ref={inputRef}
+                          placeholder={data1.club_img}
+                          disabled={true}
+                          style={{ width: '300px' }}
+                        ></InputFind>
+                        <FindLabelMainImage
+                          htmlFor="file"
+                          style={{
+                            width: '100px',
+                            height: '30px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                            paddingTop: '6px',
+                          }}
+                        >
+                          파일찾기
+                        </FindLabelMainImage>
+                        <InputMainImage
+                          type="file"
+                          id="file"
+                          accept="image/*"
+                          onChange={SaveFileImage}
+                          style={{ display: 'none' }}
+                        ></InputMainImage>
+                      </div>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>소개</TabSubTitle>
+                      <input
+                        type="text"
+                        id="comment"
+                        name="comment"
+                        value={introduction.comment}
+                        onChange={handleInputChange}
+                        placeholder={data1.club_description}
+                        style={{ width: '400px' }}
+                        maxLength={30}
+                      ></input>
+                    </WrapSubTab>
+                    <WrapSubTab>
+                      <TabSubTitle>피드</TabSubTitle>
+                      <div>
+                        <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                            {feedList}
+                        </ScrollContainer>
+                      </div>
+                      <Button onClick={() => {
+                        setClubFeedModalIsOpen(true);
+                      }}>피드 추가</Button>
+                    </WrapSubTab>
+                  </WrapTab>
+                  <WrapTab>
+                    <Button style={{ padding: '10px' }} onClick={() => {EditClubInfo()}}>저장</Button>
+                  </WrapTab>
+                </div>
+              </ScrollContainer>
+            </Contents>
+          </Container>
+        );
+
+      }
+  
+      
     }
     
   }
