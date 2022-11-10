@@ -44,10 +44,12 @@ const Logo = styled.div`
   justify-content: center;
   padding: 30px;
 `;
-const LogoTitle = styled.span`
+const LogoTitle = styled.button`
   font-size: 3rem;
   color: black;
   font-weight: bold;
+  border: none;
+  background: none;
 `;
 const WrapJoinedClub = styled.div`
   display: flex;

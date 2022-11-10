@@ -114,7 +114,7 @@ const MainLayout = () => {
 
   const handleClick = (e: any) => {
     e.preventDefault();
-    router.push('./');
+    window.location.reload();
   };
 
   const MakeClubClick = (e: any) => {
