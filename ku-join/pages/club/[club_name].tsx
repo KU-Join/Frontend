@@ -75,6 +75,12 @@ type CheckMemberLeader = {
   leader: boolean;
 }
 
+type FriendListItem = {
+  email : string;
+  nickname : string;
+  state : string;
+}
+
 const Club_PR: NextPage = () => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
@@ -86,8 +92,11 @@ const Club_PR: NextPage = () => {
   let clubidUnknown = club_id as unknown;
   let clubid = clubidUnknown as number
   let clubID = club_id as string
- 
 
+  const [friendID, setFriendID] = useState({
+    friendid: '',
+  });
+ 
   const Username: any = () => {
     if (typeof window !== 'undefined') {
       const userToken = sessionStorage.getItem('token');
@@ -106,6 +115,31 @@ const Club_PR: NextPage = () => {
     e.preventDefault();
     router.push('./');
   };
+
+  const handleFriendIDInputChange = (e: any) => {
+    setFriendID({ ...friendID, [e.target.name]: e.target.value});
+  };
+
+  const friendRequestSubmit = (e:any) => {
+    e.preventDefault();
+    const userID = sessionStorage.getItem('id');
+
+    fetch(API_URL + "/member-service/friends", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": API_URL,
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: userID + "@konkuk.ac.kr",
+        friendEmail: friendID.friendid + "@konkuk.ac.kr"
+      })
+    })
+    .then((response) => {
+      response.status == 200 ? alert("요청 성공") : alert("요청 실패")
+    })
+  }
 
   const onclick = (club_name: string, club_id: number) => {
     router.push(
@@ -142,6 +176,13 @@ const Club_PR: NextPage = () => {
   }
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const getFriendList = async (): Promise<FriendListItem[]> => {
+    const userID = sessionStorage.getItem('id');
+    return await (
+      await fetch(API_URL + '/member-service/friends?email=' + userID + '@konkuk.ac.kr')
+    ).json();
+};
 
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
     const userID = sessionStorage.getItem('id');
@@ -185,6 +226,8 @@ const Club_PR: NextPage = () => {
 
   const {data: data5, isLoading: isLoading5, error: error5} = useQuery(['MemberLeader'], getCheckMemberLeader);
 
+  const {data: data6, isLoading: isLoading6, error: error6} = useQuery(['friends'], getFriendList)
+
   if (isLoading1) return <div>'Loading...'</div>;
 
   if (isLoading2) return <div>'Loading...'</div>;
@@ -193,7 +236,9 @@ const Club_PR: NextPage = () => {
 
   if (isLoading4) return <div>'Loading...'</div>;
 
-  if (isLoading5) return <div>'Loading...'</div>
+  if (isLoading5) return <div>'Loading...'</div>;
+
+  if (isLoading6) return <div>'Loading...'</div>;
 
   if (error1) return <div>'Error..'</div>;
 
@@ -205,7 +250,9 @@ const Club_PR: NextPage = () => {
 
   if (error5) return <div>'Error..'</div>;
 
-  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id == undefined)) {
+  if (error6) return <div>'Error..'</div>;
+
+  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id == undefined) && (data6 != undefined)) {
     /*data5의 경우의 수 - A 동아리의 리더(멤버O) / 리더X(멤버O) / 멤버X */
     /*data4?.club_id의 경우의 수 -undefined: 뭐라도 하나 속한 동아리가 있음. !undefined: 아무 곳에도 속한 동아리가 없음. 고로 A 동아리의 리더이거나 멤버일 수 없음. 무조건 멤버X암*/
 
@@ -322,496 +369,1015 @@ const Club_PR: NextPage = () => {
 
     if (data5.leader == true) {
 
-      return(
-      <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
+      if (data6.length == 0) {
+
+        return(
+          <Container>
+              <Modal
+                isOpen={modalIsOpen}
+                ariaHideApp={false}
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  width: '700px',
-                  height: '500px',
+                  overlay: {
+                    margin: 'auto',
+                    width: '700px',
+                    height: '500px',
+                    backgroundColor: 'white',
+                    borderRadius: '20px',
+                  },
                 }}
-              >
-                <form>
+                contentElement={(props, children) => (
                   <div
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      gap: '50px',
+                      width: '700px',
+                      height: '500px',
                     }}
                   >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
-                      type="text"
-                      id="verify_code"
-                      name="verify_code"
-                      placeholder=""
-                      style={{
-                        borderTop: 'none',
-                        borderLeft: 'none',
-                        borderRight: 'none',
-                        backgroundColor: 'none',
-                        width: '250px',
-                      }}
-                    ></input>
-                    <Input
-                      type="button"
-                      value="제출"
+                    <form>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '50px',
+                        }}
+                      >
+                        <button onClick={() => setModalIsOpen(false)}>
+                          (임시)닫는 버튼
+                        </button>
+                        <p style={{ color: '#b72929', textAlign: 'left' }}>
+                          친구로 추가할 분의 아이디를 입력해주세요.
+                        </p>
+                        <input
+                          type="text"
+                          id="friendid"
+                          name="friendid"
+                          placeholder=""
+                          style={{
+                            borderTop: 'none',
+                            borderLeft: 'none',
+                            borderRight: 'none',
+                            backgroundColor: 'none',
+                            width: '250px',
+                          }}
+                          value={friendID.friendid}
+                          onChange={handleFriendIDInputChange}
+                        ></input>
+                        <button
+                          style={{
+                            cursor: 'pointer',
+                            width: '150px',
+                            height: '45px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                          }}
+                          onClick={(e) => {friendRequestSubmit(e)}}
+                        >제출</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              ></Modal>
+              <WrapContents>
+                <UserInfo>
+                  <Logo>
+                    <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                    <LogoTitle
+                      style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                      onClick={handleClick}
+                    >
+                      JOIN
+                    </LogoTitle>
+                  </Logo>
+                  <WrapFriendList>
+                    <WrapFriendListTitle>
+                      <ContentTitle>친구</ContentTitle>
+                      <BsPlusLg
+                        style={{ color: 'black', cursor: 'pointer' }}
+                        onClick={() => {
+                          setModalIsOpen(true);
+                        }}
+                      />
+                    </WrapFriendListTitle>
+                    <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                  </WrapFriendList>
+                  <WrapJoinedClub>
+                    <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                    <div>{usersClubListName}</div>
+                  </WrapJoinedClub>
+                </UserInfo>
+                <WrapUserStatus>
+                  <UserProfile>
+                    <UserImg />
+                    <Username />
+                  </UserProfile>
+                  <UserStatus>
+                    <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                    <MdHeadset style={{ color: '#B9BBBE' }} />
+                    <RiSettings2Fill
+                      style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                      onClick={() => router.push('../setup')}
+                    />
+                  </UserStatus>
+                </WrapUserStatus>
+              </WrapContents>
+              <Contents>
+                <WrapButton style={{ width: '70vw' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <MainTitle>{club_name}</MainTitle>
+                    <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#333333',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                      color: 'white',
+                    }}
+                    onClick={() => onclick(clubname, clubid)}
+                  >
+                    동아리 관리
+                  </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <RecruitState/>
+                    <button
                       style={{
                         cursor: 'pointer',
                         width: '150px',
                         height: '45px',
-                        backgroundColor: '#F1EEEE',
+                        backgroundColor: '#DDEAEF',
                         border: 'none',
                         borderRadius: '20px',
+                        fontWeight: 'bold',
                       }}
-                    ></Input>
+                      onClick={() => router.push(
+                        {
+                          pathname: './chat/[club_name]',
+                          query: {
+                            club_name: club_name,
+                            club_id: club_id
+                          },
+                        },
+                        './chat/[club_name]'
+                      )}>
+                      입장하기
+                    </button>
                   </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle
-                  style={{ color: '#2ABF4B', cursor: 'pointer' }}
-                  onClick={handleClick}
-                >
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <WrapButton style={{ width: '70vw' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <MainTitle>{club_name}</MainTitle>
-                <button
+                </WrapButton>
+                <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                  {data1.club_description}
+            </p>
+                <div>
+                  <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                      {feedList}
+                  </ScrollContainer>
+                </div>
+              </Contents>
+            </Container>
+          );
+
+      }
+
+      else {
+        let FriendList: JSX.Element[];
+                FriendList = data6.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+        return(
+          <Container>
+              <Modal
+                isOpen={modalIsOpen}
+                ariaHideApp={false}
                 style={{
-                  cursor: 'pointer',
-                  width: '150px',
-                  height: '45px',
-                  backgroundColor: '#333333',
-                  border: 'none',
-                  borderRadius: '20px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                }}
-                onClick={() => onclick(clubname, clubid)}
-              >
-                동아리 관리
-              </button>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <RecruitState/>
-                <button
-                  style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
-                    backgroundColor: '#DDEAEF',
-                    border: 'none',
+                  overlay: {
+                    margin: 'auto',
+                    width: '700px',
+                    height: '500px',
+                    backgroundColor: 'white',
                     borderRadius: '20px',
-                    fontWeight: 'bold',
-                  }}
-                  onClick={() => router.push(
-                    {
-                      pathname: './chat/[club_name]',
-                      query: {
-                        club_name: club_name,
-                        club_id: club_id
-                      },
-                    },
-                    './chat/[club_name]'
-                  )}>
-                  입장하기
-                </button>
-              </div>
-            </WrapButton>
-            <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
-              {data1.club_description}
-        </p>
-            <div>
-              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                  {feedList}
-              </ScrollContainer>
-            </div>
-          </Contents>
-        </Container>
-      );
+                  },
+                }}
+                contentElement={(props, children) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      width: '700px',
+                      height: '500px',
+                    }}
+                  >
+                    <form>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          gap: '50px',
+                        }}
+                      >
+                        <button onClick={() => setModalIsOpen(false)}>
+                          (임시)닫는 버튼
+                        </button>
+                        <p style={{ color: '#b72929', textAlign: 'left' }}>
+                          친구로 추가할 분의 아이디를 입력해주세요.
+                        </p>
+                        <input
+                          type="text"
+                          id="friendid"
+                          name="friendid"
+                          placeholder=""
+                          style={{
+                            borderTop: 'none',
+                            borderLeft: 'none',
+                            borderRight: 'none',
+                            backgroundColor: 'none',
+                            width: '250px',
+                          }}
+                          value={friendID.friendid}
+                          onChange={handleFriendIDInputChange}
+                        ></input>
+                        <button
+                          style={{
+                            cursor: 'pointer',
+                            width: '150px',
+                            height: '45px',
+                            backgroundColor: '#F1EEEE',
+                            border: 'none',
+                            borderRadius: '20px',
+                          }}
+                          onClick={(e) => {friendRequestSubmit(e)}}
+                        >제출</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+              ></Modal>
+              <WrapContents>
+                <UserInfo>
+                  <Logo>
+                    <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                    <LogoTitle
+                      style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                      onClick={handleClick}
+                    >
+                      JOIN
+                    </LogoTitle>
+                  </Logo>
+                  <WrapFriendList>
+                    <WrapFriendListTitle>
+                      <ContentTitle>친구</ContentTitle>
+                      <BsPlusLg
+                        style={{ color: 'black', cursor: 'pointer' }}
+                        onClick={() => {
+                          setModalIsOpen(true);
+                        }}
+                      />
+                    </WrapFriendListTitle>
+                    <div>{FriendList}</div>
+                  </WrapFriendList>
+                  <WrapJoinedClub>
+                    <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                    <div>{usersClubListName}</div>
+                  </WrapJoinedClub>
+                </UserInfo>
+                <WrapUserStatus>
+                  <UserProfile>
+                    <UserImg />
+                    <Username />
+                  </UserProfile>
+                  <UserStatus>
+                    <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                    <MdHeadset style={{ color: '#B9BBBE' }} />
+                    <RiSettings2Fill
+                      style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                      onClick={() => router.push('../setup')}
+                    />
+                  </UserStatus>
+                </WrapUserStatus>
+              </WrapContents>
+              <Contents>
+                <WrapButton style={{ width: '70vw' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <MainTitle>{club_name}</MainTitle>
+                    <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#333333',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                      color: 'white',
+                    }}
+                    onClick={() => onclick(clubname, clubid)}
+                  >
+                    동아리 관리
+                  </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <RecruitState/>
+                    <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#DDEAEF',
+                        border: 'none',
+                        borderRadius: '20px',
+                        fontWeight: 'bold',
+                      }}
+                      onClick={() => router.push(
+                        {
+                          pathname: './chat/[club_name]',
+                          query: {
+                            club_name: club_name,
+                            club_id: club_id
+                          },
+                        },
+                        './chat/[club_name]'
+                      )}>
+                      입장하기
+                    </button>
+                  </div>
+                </WrapButton>
+                <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                  {data1.club_description}
+            </p>
+                <div>
+                  <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                      {feedList}
+                  </ScrollContainer>
+                </div>
+              </Contents>
+            </Container>
+          );
+
+      }
+
+      
     }
 
     if ((data5.leader == false) && (data5.member == true)) {
 
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+      if (data6.length == 0) {
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
-                      type="text"
-                      id="verify_code"
-                      name="verify_code"
-                      placeholder=""
-                      style={{
-                        borderTop: 'none',
-                        borderLeft: 'none',
-                        borderRight: 'none',
-                        backgroundColor: 'none',
-                        width: '250px',
-                      }}
-                    ></input>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle
-                  style={{ color: '#2ABF4B', cursor: 'pointer' }}
-                  onClick={handleClick}
-                >
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <WrapButton style={{ width: '70vw' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <MainTitle>{club_name}</MainTitle>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
                   style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
-                    backgroundColor: '#DDEAEF',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontWeight: 'bold',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
                   }}
-                  onClick={() => router.push(
-                    {
-                      pathname: './chat/[club_name]',
-                      query: {
-                        club_name: club_name,
-                        club_id: club_id
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle
+                    style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                    onClick={handleClick}
+                  >
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <WrapButton style={{ width: '70vw' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <MainTitle>{club_name}</MainTitle>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#DDEAEF',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                    }}
+                    onClick={() => router.push(
+                      {
+                        pathname: './chat/[club_name]',
+                        query: {
+                          club_name: club_name,
+                          club_id: club_id
+                        },
                       },
-                    },
-                    './chat/[club_name]'
-                  )}>
-                  입장하기
-                </button>
+                      './chat/[club_name]'
+                    )}>
+                    입장하기
+                  </button>
+                </div>
+              </WrapButton>
+              <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                {data1.club_description}
+          </p>
+              <div>
+                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                    {feedList}
+                </ScrollContainer>
               </div>
-            </WrapButton>
-            <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
-              {data1.club_description}
-        </p>
-            <div>
-              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                  {feedList}
-              </ScrollContainer>
-            </div>
-          </Contents>
-        </Container>
-      );
+            </Contents>
+          </Container>
+        );
+
+      }
+
+      else {
+
+        let FriendList: JSX.Element[];
+                FriendList = data6.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle
+                    style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                    onClick={handleClick}
+                  >
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div>{FriendList}</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <WrapButton style={{ width: '70vw' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <MainTitle>{club_name}</MainTitle>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#DDEAEF',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                    }}
+                    onClick={() => router.push(
+                      {
+                        pathname: './chat/[club_name]',
+                        query: {
+                          club_name: club_name,
+                          club_id: club_id
+                        },
+                      },
+                      './chat/[club_name]'
+                    )}>
+                    입장하기
+                  </button>
+                </div>
+              </WrapButton>
+              <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                {data1.club_description}
+          </p>
+              <div>
+                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                    {feedList}
+                </ScrollContainer>
+              </div>
+            </Contents>
+          </Container>
+        );
+
+      }
     }
 
     if (data5.member == false) {
 
-      return (
-        <Container>
-          <Modal
-            isOpen={modalIsOpen}
-            ariaHideApp={false}
-            style={{
-              overlay: {
-                margin: 'auto',
-                width: '700px',
-                height: '500px',
-                backgroundColor: 'white',
-                borderRadius: '20px',
-              },
-            }}
-            contentElement={(props, children) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+      if (data6.length == 0) {
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
                   width: '700px',
                   height: '500px',
-                }}
-              >
-                <form>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      gap: '50px',
-                    }}
-                  >
-                    <button onClick={() => setModalIsOpen(false)}>
-                      (임시)닫는 버튼
-                    </button>
-                    <p style={{ color: '#b72929', textAlign: 'left' }}>
-                      친구로 추가할 분의 아이디를 입력해주세요.
-                    </p>
-                    <input
-                      type="text"
-                      id="verify_code"
-                      name="verify_code"
-                      placeholder=""
-                      style={{
-                        borderTop: 'none',
-                        borderLeft: 'none',
-                        borderRight: 'none',
-                        backgroundColor: 'none',
-                        width: '250px',
-                      }}
-                    ></input>
-                    <Input
-                      type="button"
-                      value="제출"
-                      style={{
-                        cursor: 'pointer',
-                        width: '150px',
-                        height: '45px',
-                        backgroundColor: '#F1EEEE',
-                        border: 'none',
-                        borderRadius: '20px',
-                      }}
-                    ></Input>
-                  </div>
-                </form>
-              </div>
-            )}
-          ></Modal>
-          <WrapContents>
-            <UserInfo>
-              <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle
-                  style={{ color: '#2ABF4B', cursor: 'pointer' }}
-                  onClick={handleClick}
-                >
-                  JOIN
-                </LogoTitle>
-              </Logo>
-              <WrapFriendList>
-                <WrapFriendListTitle>
-                  <ContentTitle>친구</ContentTitle>
-                  <BsPlusLg
-                    style={{ color: 'black' }}
-                    onClick={() => {
-                      setModalIsOpen(true);
-                    }}
-                  />
-                </WrapFriendListTitle>
-                <Friend>김아무개</Friend>
-                <Friend>이아무개</Friend>
-              </WrapFriendList>
-              <WrapJoinedClub>
-                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
-              </WrapJoinedClub>
-            </UserInfo>
-            <WrapUserStatus>
-              <UserProfile>
-                <UserImg />
-                <Username />
-              </UserProfile>
-              <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
-                <RiSettings2Fill
-                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                  onClick={() => router.push('../setup')}
-                />
-              </UserStatus>
-            </WrapUserStatus>
-          </WrapContents>
-          <Contents>
-            <WrapButton style={{ width: '70vw' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <MainTitle>{club_name}</MainTitle>
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <JoinState/>
-                <button
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
                   style={{
-                    cursor: 'pointer',
-                    width: '150px',
-                    height: '45px',
-                    backgroundColor: '#DDEAEF',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontWeight: 'bold',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
                   }}
-                  onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
-                  입장하기
-                </button>
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle
+                    style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                    onClick={handleClick}
+                  >
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <WrapButton style={{ width: '70vw' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <MainTitle>{club_name}</MainTitle>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <JoinState/>
+                  <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#DDEAEF',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                    }}
+                    onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
+                    입장하기
+                  </button>
+                </div>
+              </WrapButton>
+              <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                {data1.club_description}
+          </p>
+              <div>
+                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                    {feedList}
+                </ScrollContainer>
               </div>
-            </WrapButton>
-            <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
-              {data1.club_description}
-        </p>
-            <div>
-              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                  {feedList}
-              </ScrollContainer>
-            </div>
-          </Contents>
-        </Container>
-      );
+            </Contents>
+          </Container>
+        );
+        
+      }
+
+      else {
+
+        let FriendList: JSX.Element[];
+                FriendList = data6.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+        return (
+          <Container>
+            <Modal
+              isOpen={modalIsOpen}
+              ariaHideApp={false}
+              style={{
+                overlay: {
+                  margin: 'auto',
+                  width: '700px',
+                  height: '500px',
+                  backgroundColor: 'white',
+                  borderRadius: '20px',
+                },
+              }}
+              contentElement={(props, children) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '700px',
+                    height: '500px',
+                  }}
+                >
+                  <form>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '50px',
+                      }}
+                    >
+                      <button onClick={() => setModalIsOpen(false)}>
+                        (임시)닫는 버튼
+                      </button>
+                      <p style={{ color: '#b72929', textAlign: 'left' }}>
+                        친구로 추가할 분의 아이디를 입력해주세요.
+                      </p>
+                      <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+            ></Modal>
+            <WrapContents>
+              <UserInfo>
+                <Logo>
+                  <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                  <LogoTitle
+                    style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                    onClick={handleClick}
+                  >
+                    JOIN
+                  </LogoTitle>
+                </Logo>
+                <WrapFriendList>
+                  <WrapFriendListTitle>
+                    <ContentTitle>친구</ContentTitle>
+                    <BsPlusLg
+                      style={{ color: 'black', cursor: 'pointer' }}
+                      onClick={() => {
+                        setModalIsOpen(true);
+                      }}
+                    />
+                  </WrapFriendListTitle>
+                  <div>{FriendList}</div>
+                </WrapFriendList>
+                <WrapJoinedClub>
+                  <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                  <div>{usersClubListName}</div>
+                </WrapJoinedClub>
+              </UserInfo>
+              <WrapUserStatus>
+                <UserProfile>
+                  <UserImg />
+                  <Username />
+                </UserProfile>
+                <UserStatus>
+                  <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                  <MdHeadset style={{ color: '#B9BBBE' }} />
+                  <RiSettings2Fill
+                    style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                    onClick={() => router.push('../setup')}
+                  />
+                </UserStatus>
+              </WrapUserStatus>
+            </WrapContents>
+            <Contents>
+              <WrapButton style={{ width: '70vw' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <MainTitle>{club_name}</MainTitle>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <JoinState/>
+                  <button
+                    style={{
+                      cursor: 'pointer',
+                      width: '150px',
+                      height: '45px',
+                      backgroundColor: '#DDEAEF',
+                      border: 'none',
+                      borderRadius: '20px',
+                      fontWeight: 'bold',
+                    }}
+                    onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
+                    입장하기
+                  </button>
+                </div>
+              </WrapButton>
+              <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+                {data1.club_description}
+          </p>
+              <div>
+                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                    {feedList}
+                </ScrollContainer>
+              </div>
+            </Contents>
+          </Container>
+        );
+
+      }
+      
     }
 
-    
   }
 
-  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id != undefined)) {
+  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id != undefined) && (data6 != undefined)) {
 
     const JoinState: any = () => {
       if (data1.opened == true) {
@@ -881,154 +1447,313 @@ const Club_PR: NextPage = () => {
               </div>
     ))
 
-    return (
-      <Container>
-        <Modal
-          isOpen={modalIsOpen}
-          ariaHideApp={false}
-          style={{
-            overlay: {
-              margin: 'auto',
-              width: '700px',
-              height: '500px',
-              backgroundColor: 'white',
-              borderRadius: '20px',
-            },
-          }}
-          contentElement={(props, children) => (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
+    if (data6.length == 0) {
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
                 width: '700px',
                 height: '500px',
-              }}
-            >
-              <form>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '50px',
-                  }}
-                >
-                  <button onClick={() => setModalIsOpen(false)}>
-                    (임시)닫는 버튼
-                  </button>
-                  <p style={{ color: '#b72929', textAlign: 'left' }}>
-                    친구로 추가할 분의 아이디를 입력해주세요.
-                  </p>
-                  <input
-                    type="text"
-                    id="verify_code"
-                    name="verify_code"
-                    placeholder=""
-                    style={{
-                      borderTop: 'none',
-                      borderLeft: 'none',
-                      borderRight: 'none',
-                      backgroundColor: 'none',
-                      width: '250px',
-                    }}
-                  ></input>
-                  <Input
-                    type="button"
-                    value="제출"
-                    style={{
-                      cursor: 'pointer',
-                      width: '150px',
-                      height: '45px',
-                      backgroundColor: '#F1EEEE',
-                      border: 'none',
-                      borderRadius: '20px',
-                    }}
-                  ></Input>
-                </div>
-              </form>
-            </div>
-          )}
-        ></Modal>
-        <WrapContents>
-          <UserInfo>
-            <Logo>
-              <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-              <LogoTitle
-                style={{ color: '#2ABF4B', cursor: 'pointer' }}
-                onClick={handleClick}
-              >
-                JOIN
-              </LogoTitle>
-            </Logo>
-            <WrapFriendList>
-              <WrapFriendListTitle>
-                <ContentTitle>친구</ContentTitle>
-                <BsPlusLg
-                  style={{ color: 'black' }}
-                  onClick={() => {
-                    setModalIsOpen(true);
-                  }}
-                />
-              </WrapFriendListTitle>
-              <Friend>김아무개</Friend>
-              <Friend>이아무개</Friend>
-            </WrapFriendList>
-            <WrapJoinedClub>
-              <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-              <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
-            </WrapJoinedClub>
-          </UserInfo>
-          <WrapUserStatus>
-            <UserProfile>
-              <UserImg />
-              <Username />
-            </UserProfile>
-            <UserStatus>
-              <BsFillMicFill style={{ color: '#B9BBBE' }} />
-              <MdHeadset style={{ color: '#B9BBBE' }} />
-              <RiSettings2Fill
-                style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                onClick={() => router.push('../setup')}
-              />
-            </UserStatus>
-          </WrapUserStatus>
-        </WrapContents>
-        <Contents>
-          <WrapButton style={{ width: '70vw' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <MainTitle>{club_name}</MainTitle>
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <JoinState/>
-              <button
+                backgroundColor: 'white',
+                borderRadius: '20px',
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
                 style={{
-                  cursor: 'pointer',
-                  width: '150px',
-                  height: '45px',
-                  backgroundColor: '#DDEAEF',
-                  border: 'none',
-                  borderRadius: '20px',
-                  fontWeight: 'bold',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
                 }}
-              onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
-                입장하기
-              </button>
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle
+                  style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                  onClick={handleClick}
+                >
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('../setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapButton style={{ width: '70vw' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <MainTitle>{club_name}</MainTitle>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <JoinState/>
+                <button
+                  style={{
+                    cursor: 'pointer',
+                    width: '150px',
+                    height: '45px',
+                    backgroundColor: '#DDEAEF',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
+                  입장하기
+                </button>
+              </div>
+            </WrapButton>
+            <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+              {data1.club_description}
+        </p>
+            <div>
+              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                  {feedList}
+              </ScrollContainer>
             </div>
-          </WrapButton>
-          <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
-            {data1.club_description}
-      </p>
-          <div>
-            <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                {feedList}
-            </ScrollContainer>
-          </div>
-        </Contents>
-      </Container>
-    );
+          </Contents>
+        </Container>
+      );
+
+    }
+
+    else {
+      let FriendList: JSX.Element[];
+                FriendList = data6.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+      
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
+                width: '700px',
+                height: '500px',
+                backgroundColor: 'white',
+                borderRadius: '20px',
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
+                }}
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                            type="text"
+                            id="friendid"
+                            name="friendid"
+                            placeholder=""
+                            style={{
+                              borderTop: 'none',
+                              borderLeft: 'none',
+                              borderRight: 'none',
+                              backgroundColor: 'none',
+                              width: '250px',
+                            }}
+                            value={friendID.friendid}
+                            onChange={handleFriendIDInputChange}
+                          ></input>
+                          <button
+                            style={{
+                              cursor: 'pointer',
+                              width: '150px',
+                              height: '45px',
+                              backgroundColor: '#F1EEEE',
+                              border: 'none',
+                              borderRadius: '20px',
+                            }}
+                            onClick={(e) => {friendRequestSubmit(e)}}
+                          >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle
+                  style={{ color: '#2ABF4B', cursor: 'pointer' }}
+                  onClick={handleClick}
+                >
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div>{FriendList}</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('../setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapButton style={{ width: '70vw' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <MainTitle>{club_name}</MainTitle>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <JoinState/>
+                <button
+                  style={{
+                    cursor: 'pointer',
+                    width: '150px',
+                    height: '45px',
+                    backgroundColor: '#DDEAEF',
+                    border: 'none',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                  }}
+                onClick={() => alert(clubname+'의 동아리원이 아닙니다. 입장을 원하시면 가입을 해주십시오.')}>
+                  입장하기
+                </button>
+              </div>
+            </WrapButton>
+            <p style={{ color: 'white', textAlign: 'left', margin: '20px 0' }} key={data1.club_id}>
+              {data1.club_description}
+        </p>
+            <div>
+              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
+                  {feedList}
+              </ScrollContainer>
+            </div>
+          </Contents>
+        </Container>
+      );
+    }
 
   }
 

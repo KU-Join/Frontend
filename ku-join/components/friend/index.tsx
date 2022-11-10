@@ -47,7 +47,15 @@ import {
   import { useRouter } from 'next/router';
   import { useQuery } from '@tanstack/react-query';
 
+  type FriendListItem = {
+    email : string;
+    nickname : string;
+    state : string;
+  }
+
 const FriendLayout = () => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+
     const router = useRouter();
           
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -75,55 +83,228 @@ const FriendLayout = () => {
       router.push("./");
     }
 
-    return(
-        <Container>
-        <WrapContents>
-            <UserInfo>
-            <Logo>
-                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
-            </Logo>
-            <WrapFriendList>
-                <WrapFriendListTitle>
-                    <ContentTitle>친구 관리</ContentTitle>
-                </WrapFriendListTitle>
-            </WrapFriendList>
-            </UserInfo>
-        </WrapContents>
-        <Contents style={{width: "85vw"}}>
-            <WrapTitle>
-                <MainTitle>친구 관리</MainTitle>
-            </WrapTitle>
-            <WrapTab>
-                <TabTitle style={{marginBottom: "20px"}}>친구 목록</TabTitle>
-                <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
-                    <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
-                        <UserImg />
-                        <MemberName>김아무개</MemberName>
+    const AcceptFriendRequest = (FriendEmail:string) => {
+        const userID = sessionStorage.getItem('id');
+
+        fetch(API_URL + "/member-service/friends/accept", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              "Origin": API_URL,
+              "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({
+              email: userID + "@konkuk.ac.kr",
+              friendEmail: FriendEmail
+            })
+          })
+          .then((response) => {
+            response.status == 200 ? alert("수락 성공") : alert("수락 실패")
+        })
+    }
+
+    const getFriendList = async (): Promise<FriendListItem[]> => {
+        const userID = sessionStorage.getItem('id');
+        return await (
+          await fetch(API_URL + '/member-service/friends?email=' + userID + '@konkuk.ac.kr')
+        ).json();
+    };
+
+    const getRequestFriendList = async (): Promise<FriendListItem[]> => {
+        const userID = sessionStorage.getItem('id');
+        return await (
+          await fetch(API_URL + '/member-service/friends/request?email=' + userID + '@konkuk.ac.kr')
+        ).json();
+    }
+
+    const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['friends'], getFriendList)
+    const {data: data2, isLoading: isLoading2, error: error2} = useQuery(['friendrequest'], getRequestFriendList)
+
+    if (isLoading1) return <div>'Loading...</div>
+
+    if (isLoading2) return <div>'Loading...</div>
+
+    if (error1) return <div>'error..'</div>
+
+    if (error2) return <div>'error..'</div>
+
+    if ((data1 != undefined) && (data2 != undefined)) {
+        if (data1.length == 0) {
+            if (data2.length == 0) {
+                return(
+                    <Container>
+                    <WrapContents>
+                        <UserInfo>
+                        <Logo>
+                            <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                            <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
+                        </Logo>
+                        <WrapFriendList>
+                            <WrapFriendListTitle>
+                                <ContentTitle>친구 관리</ContentTitle>
+                            </WrapFriendListTitle>
+                        </WrapFriendList>
+                        </UserInfo>
+                    </WrapContents>
+                    <Contents style={{width: "85vw"}}>
+                        <WrapTitle>
+                            <MainTitle>친구 관리</MainTitle>
+                        </WrapTitle>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 목록</TabTitle>
+                            <p style={{color: "white"}}>등록된 친구가 없습니다.</p>
+                        </WrapTab>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 요청</TabTitle>
+                            <p style={{color: "white"}}>친구 요청이 없습니다.</p>
+                        </WrapTab>
+                    </Contents>
+                    </Container>
+                );
+            }
+
+            else {
+                let RequestList: JSX.Element[];
+                RequestList = data2.map((Request: FriendListItem) => (
+                    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}} key={Request.email}>
+                        <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+                            <UserImg />
+                            <MemberName>{Request.nickname}</MemberName>
+                        </div>
+                        <Button onClick={() => {AcceptFriendRequest(Request.email)}}>승인</Button>
                     </div>
-                    <p style={{color: "#B72929"}}>승인 완료</p>
-                </div>
-                <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
-                    <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
-                        <UserImg />
-                        <MemberName>이아무개</MemberName>
+                ))  
+
+                
+                return(
+                    <Container>
+                    <WrapContents>
+                        <UserInfo>
+                        <Logo>
+                            <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                            <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
+                        </Logo>
+                        <WrapFriendList>
+                            <WrapFriendListTitle>
+                                <ContentTitle>친구 관리</ContentTitle>
+                            </WrapFriendListTitle>
+                        </WrapFriendList>
+                        </UserInfo>
+                    </WrapContents>
+                    <Contents style={{width: "85vw"}}>
+                        <WrapTitle>
+                            <MainTitle>친구 관리</MainTitle>
+                        </WrapTitle>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 목록</TabTitle>
+                            <p style={{color: "white"}}>등록된 친구가 없습니다.</p>
+                        </WrapTab>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 요청</TabTitle>
+                            <div>{RequestList}</div>
+                        </WrapTab>
+                    </Contents>
+                    </Container>
+                );
+            }
+        }
+
+        else {
+            let FriendList: JSX.Element[];
+                FriendList = data1.map((Friend: FriendListItem) => (
+                    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}} key={Friend.email}>
+                        <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+                            <UserImg />
+                            <MemberName>{Friend.nickname}</MemberName>
+                        </div>
+                        {Friend.state == "ACCEPT" && <p style={{color: "#B72929"}}>승인 완료</p>}
+                        {Friend.state == "WAITING" && <p style={{color: "#2ABF4B"}}>승인 대기</p>}
+                    </div>   
+                ));
+
+            if (data2.length == 0) {
+                return(
+                    <Container>
+                    <WrapContents>
+                        <UserInfo>
+                        <Logo>
+                            <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                            <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
+                        </Logo>
+                        <WrapFriendList>
+                            <WrapFriendListTitle>
+                                <ContentTitle>친구 관리</ContentTitle>
+                            </WrapFriendListTitle>
+                        </WrapFriendList>
+                        </UserInfo>
+                    </WrapContents>
+                    <Contents style={{width: "85vw"}}>
+                        <WrapTitle>
+                            <MainTitle>친구 관리</MainTitle>
+                        </WrapTitle>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 목록</TabTitle>
+                            <div>{FriendList}</div>
+                        </WrapTab>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 요청</TabTitle>
+                            <p style={{color: "white"}}>친구 요청이 없습니다.</p>
+                        </WrapTab>
+                    </Contents>
+                    </Container>
+                );
+
+            }
+
+            else {
+
+                let RequestList: JSX.Element[];
+                RequestList = data2.map((Request: FriendListItem) => (
+                    <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}} key={Request.email}>
+                        <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+                            <UserImg />
+                            <MemberName>{Request.nickname}</MemberName>
+                        </div>
+                        <Button onClick={() => {AcceptFriendRequest}}>승인</Button>
                     </div>
-                    <p style={{color: "#2ABF4B"}}>승인 대기</p>
-                </div>
-            </WrapTab>
-            <WrapTab>
-                <TabTitle style={{marginBottom: "20px"}}>친구 요청</TabTitle>
-                <div style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
-                    <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
-                        <UserImg />
-                        <MemberName>김아무개</MemberName>
-                    </div>
-                    <Button>승인</Button>
-                </div>
-            </WrapTab>
-        </Contents>
-        </Container>
-    );
+                ))  
+
+                return(
+                    <Container>
+                    <WrapContents>
+                        <UserInfo>
+                        <Logo>
+                            <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                            <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>JOIN</LogoTitle>
+                        </Logo>
+                        <WrapFriendList>
+                            <WrapFriendListTitle>
+                                <ContentTitle>친구 관리</ContentTitle>
+                            </WrapFriendListTitle>
+                        </WrapFriendList>
+                        </UserInfo>
+                    </WrapContents>
+                    <Contents style={{width: "85vw"}}>
+                        <WrapTitle>
+                            <MainTitle>친구 관리</MainTitle>
+                        </WrapTitle>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 목록</TabTitle>
+                            <div>{FriendList}</div>
+                        </WrapTab>
+                        <WrapTab>
+                            <TabTitle style={{marginBottom: "20px"}}>친구 요청</TabTitle>
+                            <div>{RequestList}</div>
+                        </WrapTab>
+                    </Contents>
+                    </Container>
+                );
+            }
+        }
+    }
+
+    
+    return <div>data is undefined</div>;
 }
 
 export default FriendLayout;

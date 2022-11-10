@@ -72,6 +72,12 @@ type UserClubListItemEmpty = {
     club_id: [];
 }
 
+type FriendListItem = {
+  email : string;
+  nickname : string;
+  state : string;
+}
+
 const MainLayout = () => {
   //확인했을 때 참여 중인 동아리가 0개일 때는 없다고 띄워주기 & 친구도 (+길어지면 스크롤)
   //마이크, 스피커 on/off에 따라 다른 아이콘
@@ -84,6 +90,10 @@ const MainLayout = () => {
   const router = useRouter();
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const [friendID, setFriendID] = useState({
+    friendid: '',
+  });
 
   const Username: any = () => {
     if (typeof window !== 'undefined') {
@@ -108,6 +118,39 @@ const MainLayout = () => {
     e.preventDefault();
     router.push('./makeclub');
   };
+
+  const handleFriendIDInputChange = (e: any) => {
+    setFriendID({ ...friendID, [e.target.name]: e.target.value});
+  };
+
+  const friendRequestSubmit = (e:any) => {
+    e.preventDefault();
+    const userID = sessionStorage.getItem('id');
+
+    fetch(API_URL + "/member-service/friends", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": API_URL,
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({
+        email: userID + "@konkuk.ac.kr",
+        friendEmail: friendID.friendid + "@konkuk.ac.kr"
+      })
+    })
+    .then((response) => {
+      response.status == 200 ? alert("요청 성공") : alert("요청 실패")
+    })
+  }
+
+
+  const getFriendList = async (): Promise<FriendListItem[]> => {
+    const userID = sessionStorage.getItem('id');
+    return await (
+      await fetch(API_URL + '/member-service/friends?email=' + userID + '@konkuk.ac.kr')
+    ).json();
+};
 
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
     const userID = sessionStorage.getItem('id');
@@ -160,11 +203,15 @@ const MainLayout = () => {
     error: error3,
   } = useQuery(['UsersClubListEmpty'], getUsersClubListEmpty);
 
+  const {data: data4, isLoading: isLoading4, error: error4} = useQuery(['friends'], getFriendList)
+
   if (isLoading1) return <div>'Loading...'</div>;
 
   if (isLoading2) return <div>'Loading...'</div>;
 
   if (isLoading3) return <div>'Loading...'</div>;
+
+  if (isLoading4) return <div>'Loading...'</div>;
 
   if (error1) return <div>'Error..'</div>;
 
@@ -172,7 +219,9 @@ const MainLayout = () => {
 
   if (error3) return <div>'Error..'</div>;
 
-  if (((data1 != undefined) && (data2 != undefined)) && (data3?.club_id == undefined)) {
+  if (error4) return <div>'Error..'</div>;
+
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3?.club_id == undefined)) && (data4 != undefined)) {
 
     let usersClubListName: JSX.Element[];
     usersClubListName = data2.map((club: UserClubListItem) => (
@@ -654,264 +703,532 @@ const MainLayout = () => {
       </div>
     ));
 
-    return (
-      <Container>
-        <Modal
-          isOpen={modalIsOpen}
-          ariaHideApp={false}
-          style={{
-            overlay: {
-              margin: 'auto',
-              width: '700px',
-              height: '500px',
-              backgroundColor: 'white',
-              borderRadius: '20px',
-            },
-          }}
-          contentElement={(props, children) => (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
+    if (data4.length == 0) {
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
                 width: '700px',
                 height: '500px',
-              }}
-            >
-              <form>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '50px',
-                  }}
-                >
-                  <button onClick={() => setModalIsOpen(false)}>
-                    (임시)닫는 버튼
-                  </button>
-                  <p style={{ color: '#b72929', textAlign: 'left' }}>
-                    친구로 추가할 분의 아이디를 입력해주세요.
-                  </p>
-                  <input
-                    type="text"
-                    id="verify_code"
-                    name="verify_code"
-                    placeholder=""
-                    style={{
-                      borderTop: 'none',
-                      borderLeft: 'none',
-                      borderRight: 'none',
-                      backgroundColor: 'none',
-                      width: '250px',
-                    }}
-                  ></input>
-                  <Input
-                    type="button"
-                    value="제출"
-                    style={{
-                      cursor: 'pointer',
-                      width: '150px',
-                      height: '45px',
-                      backgroundColor: '#F1EEEE',
-                      border: 'none',
-                      borderRadius: '20px',
-                    }}
-                  ></Input>
-                </div>
-              </form>
-            </div>
-          )}
-        ></Modal>
-        <WrapContents>
-          <UserInfo>
-            <Logo>
-              <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-              <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                JOIN
-              </LogoTitle>
-            </Logo>
-            <WrapFriendList>
-              <WrapFriendListTitle>
-                <ContentTitle>친구</ContentTitle>
-                <BsPlusLg
-                  style={{ color: 'black', cursor: 'pointer' }}
-                  onClick={() => {
-                    setModalIsOpen(true);
-                  }}
-                />
-              </WrapFriendListTitle>
-              <Friend>김아무개</Friend>
-              <Friend>이아무개</Friend>
-            </WrapFriendList>
-            <WrapJoinedClub>
-              <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-              <div>{usersClubListName}</div>
-            </WrapJoinedClub>
-          </UserInfo>
-          <WrapUserStatus>
-            <UserProfile>
-              <UserImg />
-              <Username />
-            </UserProfile>
-            <UserStatus>
-              <BsFillMicFill style={{ color: '#B9BBBE' }} />
-              <MdHeadset style={{ color: '#B9BBBE' }} />
-              <RiSettings2Fill
-                style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                onClick={() => router.push('./setup')}
-              />
-            </UserStatus>
-          </WrapUserStatus>
-        </WrapContents>
-        <Contents>
-          <WrapTitle>
-            <MainTitle>동아리 살펴보기</MainTitle>
-            <button
-              style={{
-                padding: '10px',
-                backgroundColor: '#F1EEEE',
+                backgroundColor: 'white',
                 borderRadius: '20px',
-              }}
-              onClick={MakeClubClick}
-            >
-              동아리 만들기
-            </button>
-          </WrapTitle>
-          <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
-            <WrapClubTypes
-              style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
-            >
-              <WrapClubType>
-                <ClubType>구기체육분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
-                    >
-                      {sports}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>레저무예분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {leisure}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>봉사분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {volunteer_work}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>어학분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {language}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>연행예술분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {art}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>인문사회분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {humanities}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>자연과학분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {science}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>종교분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {religion}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>창작비평분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {creation}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>가등록</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {provisional_registration}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-            </WrapClubTypes>
-          </ScrollContainer>
-        </Contents>
-      </Container>
-    );
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
+                }}
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                      type="text"
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
+                    ></input>
+                    <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div>{usersClubListName}</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('./setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapTitle>
+              <MainTitle>동아리 살펴보기</MainTitle>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#F1EEEE',
+                  borderRadius: '20px',
+                }}
+                onClick={MakeClubClick}
+              >
+                동아리 만들기
+              </button>
+            </WrapTitle>
+            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+              <WrapClubTypes
+                style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
+              >
+                <WrapClubType>
+                  <ClubType>구기체육분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
+                      >
+                        {sports}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>레저무예분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {leisure}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>봉사분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {volunteer_work}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>어학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {language}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>연행예술분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {art}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>인문사회분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {humanities}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>자연과학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {science}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>종교분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {religion}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>창작비평분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {creation}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>가등록</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {provisional_registration}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+              </WrapClubTypes>
+            </ScrollContainer>
+          </Contents>
+        </Container>
+      );
+    }
+
+    else {
+      let FriendList: JSX.Element[];
+                FriendList = data4.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
+                width: '700px',
+                height: '500px',
+                backgroundColor: 'white',
+                borderRadius: '20px',
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
+                }}
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                      type="text"
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
+                    ></input>
+                    <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div>{FriendList}</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div>{usersClubListName}</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('./setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapTitle>
+              <MainTitle>동아리 살펴보기</MainTitle>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#F1EEEE',
+                  borderRadius: '20px',
+                }}
+                onClick={MakeClubClick}
+              >
+                동아리 만들기
+              </button>
+            </WrapTitle>
+            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+              <WrapClubTypes
+                style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
+              >
+                <WrapClubType>
+                  <ClubType>구기체육분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
+                      >
+                        {sports}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>레저무예분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {leisure}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>봉사분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {volunteer_work}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>어학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {language}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>연행예술분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {art}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>인문사회분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {humanities}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>자연과학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {science}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>종교분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {religion}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>창작비평분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {creation}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>가등록</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {provisional_registration}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+              </WrapClubTypes>
+            </ScrollContainer>
+          </Contents>
+        </Container>
+      );
+
+    }
+
+    
   }
 
-  if(((data1 != undefined)) && (data3?.club_id != undefined)) {
+  if((((data1 != undefined) && (data2 != undefined)) && (data3?.club_id != undefined)) && (data4 != undefined)) {
     let sports: JSX.Element[];
     sports = data1.구기체육분과.map((club: ClubItem) => (
       <div
@@ -1383,261 +1700,529 @@ const MainLayout = () => {
       </div>
     ));
 
-    return (
-      <Container>
-        <Modal
-          isOpen={modalIsOpen}
-          ariaHideApp={false}
-          style={{
-            overlay: {
-              margin: 'auto',
-              width: '700px',
-              height: '500px',
-              backgroundColor: 'white',
-              borderRadius: '20px',
-            },
-          }}
-          contentElement={(props, children) => (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
+    if (data4.length == 0) {
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
                 width: '700px',
                 height: '500px',
-              }}
-            >
-              <form>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '50px',
-                  }}
-                >
-                  <button onClick={() => setModalIsOpen(false)}>
-                    (임시)닫는 버튼
-                  </button>
-                  <p style={{ color: '#b72929', textAlign: 'left' }}>
-                    친구로 추가할 분의 아이디를 입력해주세요.
-                  </p>
-                  <input
-                    type="text"
-                    id="verify_code"
-                    name="verify_code"
-                    placeholder=""
-                    style={{
-                      borderTop: 'none',
-                      borderLeft: 'none',
-                      borderRight: 'none',
-                      backgroundColor: 'none',
-                      width: '250px',
-                    }}
-                  ></input>
-                  <Input
-                    type="button"
-                    value="제출"
-                    style={{
-                      cursor: 'pointer',
-                      width: '150px',
-                      height: '45px',
-                      backgroundColor: '#F1EEEE',
-                      border: 'none',
-                      borderRadius: '20px',
-                    }}
-                  ></Input>
-                </div>
-              </form>
-            </div>
-          )}
-        ></Modal>
-        <WrapContents>
-          <UserInfo>
-            <Logo>
-              <LogoTitle onClick={handleClick}>KU:</LogoTitle>
-              <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
-                JOIN
-              </LogoTitle>
-            </Logo>
-            <WrapFriendList>
-              <WrapFriendListTitle>
-                <ContentTitle>친구</ContentTitle>
-                <BsPlusLg
-                  style={{ color: 'black', cursor: 'pointer' }}
-                  onClick={() => {
-                    setModalIsOpen(true);
-                  }}
-                />
-              </WrapFriendListTitle>
-              <Friend>김아무개</Friend>
-              <Friend>이아무개</Friend>
-            </WrapFriendList>
-            <WrapJoinedClub>
-              <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-              <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
-            </WrapJoinedClub>
-          </UserInfo>
-          <WrapUserStatus>
-            <UserProfile>
-              <UserImg />
-              <Username />
-            </UserProfile>
-            <UserStatus>
-              <BsFillMicFill style={{ color: '#B9BBBE' }} />
-              <MdHeadset style={{ color: '#B9BBBE' }} />
-              <RiSettings2Fill
-                style={{ color: '#B9BBBE', cursor: 'pointer' }}
-                onClick={() => router.push('./setup')}
-              />
-            </UserStatus>
-          </WrapUserStatus>
-        </WrapContents>
-        <Contents>
-          <WrapTitle>
-            <MainTitle>동아리 살펴보기</MainTitle>
-            <button
-              style={{
-                padding: '10px',
-                backgroundColor: '#F1EEEE',
+                backgroundColor: 'white',
                 borderRadius: '20px',
-              }}
-              onClick={MakeClubClick}
-            >
-              동아리 만들기
-            </button>
-          </WrapTitle>
-          <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
-            <WrapClubTypes
-              style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
-            >
-              <WrapClubType>
-                <ClubType>구기체육분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
-                    >
-                      {sports}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>레저무예분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {leisure}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>봉사분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {volunteer_work}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>어학분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {language}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>연행예술분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {art}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>인문사회분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {humanities}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>자연과학분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {science}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>종교분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {religion}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>창작비평분과</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {creation}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-              <WrapClubType>
-                <ClubType>가등록</ClubType>
-                <WrapClub>
-                  <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                    <div
-                      style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
-                    >
-                      {provisional_registration}
-                    </div>
-                  </ScrollContainer>
-                </WrapClub>
-              </WrapClubType>
-            </WrapClubTypes>
-          </ScrollContainer>
-        </Contents>
-      </Container>
-    );
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
+                }}
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                      type="text"
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
+                    ></input>
+                    <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div style={{marginTop: "20px"}}>친구 목록이 존재하지 않습니다.</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('./setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapTitle>
+              <MainTitle>동아리 살펴보기</MainTitle>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#F1EEEE',
+                  borderRadius: '20px',
+                }}
+                onClick={MakeClubClick}
+              >
+                동아리 만들기
+              </button>
+            </WrapTitle>
+            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+              <WrapClubTypes
+                style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
+              >
+                <WrapClubType>
+                  <ClubType>구기체육분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
+                      >
+                        {sports}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>레저무예분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {leisure}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>봉사분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {volunteer_work}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>어학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {language}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>연행예술분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {art}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>인문사회분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {humanities}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>자연과학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {science}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>종교분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {religion}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>창작비평분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {creation}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>가등록</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {provisional_registration}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+              </WrapClubTypes>
+            </ScrollContainer>
+          </Contents>
+        </Container>
+      );
+    }
+
+    else {
+
+      let FriendList: JSX.Element[];
+                FriendList = data4.map((Friends: FriendListItem) => (
+                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                ));
+
+      return (
+        <Container>
+          <Modal
+            isOpen={modalIsOpen}
+            ariaHideApp={false}
+            style={{
+              overlay: {
+                margin: 'auto',
+                width: '700px',
+                height: '500px',
+                backgroundColor: 'white',
+                borderRadius: '20px',
+              },
+            }}
+            contentElement={(props, children) => (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '700px',
+                  height: '500px',
+                }}
+              >
+                <form>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '50px',
+                    }}
+                  >
+                    <button onClick={() => setModalIsOpen(false)}>
+                      (임시)닫는 버튼
+                    </button>
+                    <p style={{ color: '#b72929', textAlign: 'left' }}>
+                      친구로 추가할 분의 아이디를 입력해주세요.
+                    </p>
+                    <input
+                      type="text"
+                      id="friendid"
+                      name="friendid"
+                      placeholder=""
+                      style={{
+                        borderTop: 'none',
+                        borderLeft: 'none',
+                        borderRight: 'none',
+                        backgroundColor: 'none',
+                        width: '250px',
+                      }}
+                      value={friendID.friendid}
+                      onChange={handleFriendIDInputChange}
+                    ></input>
+                    <button
+                      style={{
+                        cursor: 'pointer',
+                        width: '150px',
+                        height: '45px',
+                        backgroundColor: '#F1EEEE',
+                        border: 'none',
+                        borderRadius: '20px',
+                      }}
+                      onClick={(e) => {friendRequestSubmit(e)}}
+                    >제출</button>
+                  </div>
+                </form>
+              </div>
+            )}
+          ></Modal>
+          <WrapContents>
+            <UserInfo>
+              <Logo>
+                <LogoTitle onClick={handleClick}>KU:</LogoTitle>
+                <LogoTitle style={{ color: '#2ABF4B' }} onClick={handleClick}>
+                  JOIN
+                </LogoTitle>
+              </Logo>
+              <WrapFriendList>
+                <WrapFriendListTitle>
+                  <ContentTitle>친구</ContentTitle>
+                  <BsPlusLg
+                    style={{ color: 'black', cursor: 'pointer' }}
+                    onClick={() => {
+                      setModalIsOpen(true);
+                    }}
+                  />
+                </WrapFriendListTitle>
+                <div>{FriendList}</div>
+              </WrapFriendList>
+              <WrapJoinedClub>
+                <ContentTitle>내가 참여 중인 동아리</ContentTitle>
+                <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
+              </WrapJoinedClub>
+            </UserInfo>
+            <WrapUserStatus>
+              <UserProfile>
+                <UserImg />
+                <Username />
+              </UserProfile>
+              <UserStatus>
+                <BsFillMicFill style={{ color: '#B9BBBE' }} />
+                <MdHeadset style={{ color: '#B9BBBE' }} />
+                <RiSettings2Fill
+                  style={{ color: '#B9BBBE', cursor: 'pointer' }}
+                  onClick={() => router.push('./setup')}
+                />
+              </UserStatus>
+            </WrapUserStatus>
+          </WrapContents>
+          <Contents>
+            <WrapTitle>
+              <MainTitle>동아리 살펴보기</MainTitle>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#F1EEEE',
+                  borderRadius: '20px',
+                }}
+                onClick={MakeClubClick}
+              >
+                동아리 만들기
+              </button>
+            </WrapTitle>
+            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+              <WrapClubTypes
+                style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
+              >
+                <WrapClubType>
+                  <ClubType>구기체육분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
+                      >
+                        {sports}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>레저무예분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {leisure}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>봉사분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {volunteer_work}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>어학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {language}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>연행예술분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {art}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>인문사회분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {humanities}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>자연과학분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {science}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>종교분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {religion}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>창작비평분과</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {creation}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+                <WrapClubType>
+                  <ClubType>가등록</ClubType>
+                  <WrapClub>
+                    <ScrollContainer style={{ width: '70vw' }} vertical={false}>
+                      <div
+                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                      >
+                        {provisional_registration}
+                      </div>
+                    </ScrollContainer>
+                  </WrapClub>
+                </WrapClubType>
+              </WrapClubTypes>
+            </ScrollContainer>
+          </Contents>
+        </Container>
+      );
+    }
+
+    
   }
 
   return <div>data is undefined</div>;
