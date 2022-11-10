@@ -78,7 +78,7 @@ const MakeClubForm = () => {
         //const blob = new Blob([JSON.stringify(club)], {type: "application/json"})
         //formData.append("info", blob)
 
-        fetch(API_URL + '/club-form', {
+        fetch(API_URL + '/club-service/club-form', {
             method: "POST",
             body: formData
         })
