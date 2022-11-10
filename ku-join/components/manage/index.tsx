@@ -138,7 +138,7 @@ const ManagementLayout = () => {
 
   const handleClick = (e: any) => {
     e.preventDefault();
-    router.push('./');
+    router.push('../../main');
   };
 
   const handleFriendIDInputChange = (e: any) => {

@@ -82,7 +82,7 @@ const FriendLayout = () => {
   
     const handleClick = (e:any) => {
       e.preventDefault();
-      router.push("./");
+      router.push("./main");
     }
 
     const AcceptFriendRequest = (FriendEmail:string) => {
