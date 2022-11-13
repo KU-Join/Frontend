@@ -35,8 +35,8 @@ import {
 import { Input } from '../signup-form/signup-form-style';
 import Modal from 'react-modal';
 
-import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
-import { MdHeadset } from 'react-icons/md';
+import { BsFillMicFill, BsPlusLg, BsFillMicMuteFill } from 'react-icons/bs';
+import { MdHeadset, MdHeadsetOff } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
 import { AiFillCloseSquare } from 'react-icons/ai'
 
@@ -97,6 +97,11 @@ const MainLayout = () => {
   const [friendID, setFriendID] = useState({
     friendid: '',
   });
+
+  const [MICIsOn, setMICIsOn] = useState(true);
+  const [MICIsOff, setMICISOff] = useState(false);
+  const [HeadsetIsOn, setHeadsetIsOn] = useState(true);
+  const [HeadsetIsOff, setHeadsetIsOff] = useState(false);
 
   const Username: any = () => {
     if (typeof window !== 'undefined') {
@@ -839,8 +844,10 @@ const MainLayout = () => {
                 <Username />
               </UserProfile>
               <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
+                {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                 <RiSettings2Fill
                   style={{ color: '#B9BBBE', cursor: 'pointer' }}
                   onClick={() => router.push('./setup')}
@@ -1102,8 +1109,10 @@ const MainLayout = () => {
                 <Username />
               </UserProfile>
               <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
+                {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                 <RiSettings2Fill
                   style={{ color: '#B9BBBE', cursor: 'pointer' }}
                   onClick={() => router.push('./setup')}
@@ -1836,8 +1845,10 @@ const MainLayout = () => {
                 <Username />
               </UserProfile>
               <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
+                {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                 <RiSettings2Fill
                   style={{ color: '#B9BBBE', cursor: 'pointer' }}
                   onClick={() => router.push('./setup')}
@@ -2100,8 +2111,10 @@ const MainLayout = () => {
                 <Username />
               </UserProfile>
               <UserStatus>
-                <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                <MdHeadset style={{ color: '#B9BBBE' }} />
+                {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                 <RiSettings2Fill
                   style={{ color: '#B9BBBE', cursor: 'pointer' }}
                   onClick={() => router.push('./setup')}
