@@ -36,8 +36,8 @@ import {
     WrapTitle,
     WrapButton,
   } from '../main/main-style';
-import { BsFillMicFill, BsPlusLg } from 'react-icons/bs';
-import { MdHeadset } from 'react-icons/md';
+import { BsFillMicFill, BsFillMicMuteFill } from 'react-icons/bs';
+import { MdHeadset, MdHeadsetOff } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
 import { MemberName } from "../manage/manage-style";
 
@@ -76,6 +76,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     content: "",
     clubName: clubname
   })
+
+  const [MICIsOn, setMICIsOn] = useState(true);
+  const [MICIsOff, setMICISOff] = useState(false);
+  const [HeadsetIsOn, setHeadsetIsOn] = useState(true);
+  const [HeadsetIsOff, setHeadsetIsOff] = useState(false);
 
   const [publicChats, setpublicChats] = useState<any>([])
 
@@ -211,8 +216,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                           <Username />
                       </UserProfile>
                       <UserStatus>
-                          <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                          <MdHeadset style={{ color: '#B9BBBE' }} />
+                        {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                        {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                        {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                        {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                           <RiSettings2Fill
                           style={{ color: '#B9BBBE', cursor: 'pointer' }}
                           onClick={() => router.push('../setup')}
@@ -314,7 +321,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                             <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
                         </div>
                       </ScrollContainer>
-                      <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
+                      <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}} onClick={() => alert("추후 구현 예정")}>글쓰기</button>
                   </div>
                   }
                   {ImgIsoOpen && 
@@ -433,7 +440,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                             </div>
                             </div>
                       </ScrollContainer>
-                      <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
+                      <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}} onClick={() => alert("추후 구현 예정")}>글쓰기</button>
                   </div>
                   }
               </div>
@@ -488,8 +495,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         <Username />
                     </UserProfile>
                     <UserStatus>
-                        <BsFillMicFill style={{ color: '#B9BBBE' }} />
-                        <MdHeadset style={{ color: '#B9BBBE' }} />
+                    {MICIsOn && <BsFillMicFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                    {MICIsOff && <BsFillMicMuteFill style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setMICIsOn((e) => !e), setMICISOff((e) => !e), alert("추후 구현 예정")}}/>}
+                    {HeadsetIsOn && <MdHeadset style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
+                    {HeadsetIsOff && <MdHeadsetOff style={{ color: '#B9BBBE', cursor: "pointer" }} onClick={() => {setHeadsetIsOn((e) => !e), setHeadsetIsOff((e) => !e), alert("추후 구현 예정")}}/>}
                         <RiSettings2Fill
                         style={{ color: '#B9BBBE', cursor: 'pointer' }}
                         onClick={() => router.push('../setup')}
@@ -591,7 +600,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                             <p style={{textAlign: "left"}}>곧 파트 연습 시간 공지하겠습니다. <br/> 해당 시간에는 동방에 출입을 자제하여주시기 바랍니다.</p>
                         </div>
                     </ScrollContainer>
-                    <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
+                    <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}} onClick={() => alert("추후 구현 예정")}>글쓰기</button>
                 </div>
                 }
                 {ImgIsoOpen && 
@@ -710,7 +719,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         </div>
                         </div>
                     </ScrollContainer>
-                    <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}}>글쓰기</button>
+                    <button style={{width: "10vw", height: "7vh", borderRadius: "5px", padding: "10px"}} onClick={() => alert("추후 구현 예정")}>글쓰기</button>
                 </div>
                 }
             </div>
