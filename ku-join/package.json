@@ -1,0 +1,53 @@
+{
+  "name": "ku-join",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@stomp/stompjs": "^6.1.2",
+    "@types/sockjs": "^0.3.33",
+    "@types/sockjs-client": "^1.5.1",
+    "@types/stompjs": "^2.3.5",
+    "@types/styled-components": "^5.1.26",
+    "net": "^1.0.2",
+    "next": "12.3.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-modal": "^3.15.1",
+    "react-scripts": "^5.0.1",
+    "sockjs": "^0.3.24",
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
+    "styled-components": "^5.3.6",
+    "styled-reset": "^4.4.2"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^4.10.3",
+    "@types/axios": "^0.14.0",
+    "@types/node": "18.8.4",
+    "@types/react": "18.0.21",
+    "@types/react-dom": "18.0.6",
+    "@types/react-modal": "^3.13.1",
+    "@typescript-eslint/eslint-plugin": "^5.40.0",
+    "@typescript-eslint/parser": "^5.40.0",
+    "axios": "^1.1.2",
+    "babel-plugin-styled-components": "^2.0.7",
+    "eslint": "^8.25.0",
+    "eslint-config-next": "12.3.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.31.10",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1",
+    "react-icons": "^4.4.0",
+    "react-indiana-drag-scroll": "^2.2.0",
+    "typescript": "4.8.4"
+  },
+  "proxy": "http://54.180.68.142:8080"
+}
