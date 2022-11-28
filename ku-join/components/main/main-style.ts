@@ -127,8 +127,7 @@ const ClubType = styled.p`
   text-align: left;
   margin-bottom: 30px;
 `;
-const WrapClub = styled.div`
-`;
+const WrapClub = styled.div``;
 
 const Club = styled.div`
   width: 400px;
@@ -142,7 +141,7 @@ const WrapFriendList = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 50px;
-`
+`;
 
 const WrapFriendListTitle = styled.div`
   display: flex;
@@ -150,21 +149,21 @@ const WrapFriendListTitle = styled.div`
   align-items: center;
   padding: 0 70px;
   margin-bottom: 20px;
-`
+`;
 
 const Friend = styled.p`
   font-size: 18px;
   padding: 0 130px 15px 0;
-`
+`;
 
 const WrapTitle = styled.div`
   display: flex;
   justify-content: space-between;
-`
+`;
 const WrapButton = styled.div`
   display: flex;
   justify-content: space-between;
-`
+`;
 
 export {
   Container,
@@ -193,5 +192,5 @@ export {
   WrapFriendListTitle,
   Friend,
   WrapTitle,
-  WrapButton
+  WrapButton,
 };

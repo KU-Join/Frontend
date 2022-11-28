@@ -26,9 +26,9 @@ const WrapForm = styled.div`
   height: 200px;
   display: grid;
   gap: 10px;
-  grid-template-areas: "signin_id_label signin_id"
-                      "signin_pwd_label signin_pwd";
-
+  grid-template-areas:
+    'signin_id_label signin_id'
+    'signin_pwd_label signin_pwd';
 
   grid-template-columns: 150px 150px;
   grid-template-rows: 30px 30px;

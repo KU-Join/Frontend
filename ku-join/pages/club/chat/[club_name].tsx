@@ -1,11 +1,9 @@
-import React from "react";
+import React from 'react';
 import { NextPage } from 'next';
-import ChattingChannelLayout from "../../../components/chat";
+import ChattingChannelLayout from '../../../components/chat';
 
 const ChattingChannel: NextPage = () => {
-    return(
-        <ChattingChannelLayout/>
-    )
-}
+  return <ChattingChannelLayout />;
+};
 
 export default ChattingChannel;
