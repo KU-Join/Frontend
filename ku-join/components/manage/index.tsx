@@ -723,7 +723,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -1289,7 +1289,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -1882,7 +1882,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -2448,7 +2448,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -3055,7 +3055,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -3584,7 +3584,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -4140,7 +4140,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
@@ -4669,7 +4669,7 @@ const ManagementLayout = () => {
                       }}
                     >
                       <AiFillCloseSquare
-                        onClick={() => setModalIsOpen(false)}
+                        onClick={() => setClubFeedModalIsOpen(false)}
                         style={{
                           cursor: 'pointer',
                           width: '50px',
