@@ -74,9 +74,10 @@ const JoinedClubName = styled.span`
 const JoinedClub = styled.div`
   display: flex;
   gap: 20px;
-  justify-content: center;
-  padding: 20px;
+  justify-content: start;
+  padding: 10px;
   align-items: center;
+  margin-left: 40px;
 `;
 const UserProfile = styled.div`
   display: flex;
