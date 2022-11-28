@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
 
 const Container = styled.div`
   width: 100vw;
@@ -26,11 +26,12 @@ const WrapForm = styled.div`
   height: 250px;
   display: grid;
   gap: 10px;
-  grid-template-areas: "leader_id_label leader_id ."
-                      "club_name_label club_name ."
-                      "club_category_label club_category ."
-                      "main_image_label main_image main_image_label2"
-                      "club_description_label club_description club_description";
+  grid-template-areas:
+    'leader_id_label leader_id .'
+    'club_name_label club_name .'
+    'club_category_label club_category .'
+    'main_image_label main_image main_image_label2'
+    'club_description_label club_description club_description';
   grid-template-columns: 150px 150px 100px;
   grid-template-rows: repeat(5, 30px);
 `;
@@ -76,7 +77,8 @@ const InputClubCategory = styled.input`
   background-color: #d9d9d9;
   border: none;
   grid-area: club_category;
-  border: 1px solid black;`;
+  border: 1px solid black;
+`;
 
 const LabelMainImage = styled.label`
   color: #b72929;
@@ -86,14 +88,14 @@ const LabelMainImage = styled.label`
 
 const FindLabelMainImage = styled.label`
   grid-area: main_image_label2;
-`
+`;
 
 const InputFind = styled.input`
   background-color: #d9d9d9;
   border: none;
   grid-area: main_image;
   border: 1px solid black;
-`
+`;
 
 const InputMainImage = styled.input`
   background-color: #d9d9d9;
@@ -105,12 +107,29 @@ const LabelDescription = styled.label`
   color: #b72929;
   grid-area: club_description_label;
   text-align: left;
-`
+`;
 const InputDescription = styled.input`
   background-color: #d9d9d9;
   border: none;
   grid-area: club_description;
   border: 1px solid black;
-`
+`;
 
-export {Container, Form, WrapForm, Input, InputLeaderID, LabelLeaderID, InputClubName, LabelClubName, InputClubCategory, LabelClubCategory, InputMainImage, LabelMainImage, FindLabelMainImage, InputFind, LabelDescription, InputDescription};
+export {
+  Container,
+  Form,
+  WrapForm,
+  Input,
+  InputLeaderID,
+  LabelLeaderID,
+  InputClubName,
+  LabelClubName,
+  InputClubCategory,
+  LabelClubCategory,
+  InputMainImage,
+  LabelMainImage,
+  FindLabelMainImage,
+  InputFind,
+  LabelDescription,
+  InputDescription,
+};

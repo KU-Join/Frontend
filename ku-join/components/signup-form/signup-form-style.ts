@@ -26,11 +26,11 @@ const WrapForm = styled.div`
   height: 250px;
   display: grid;
   gap: 10px;
-  grid-template-areas: "signup_id_label signup_id duplicate_btn"
-                      "signup_pwd_label signup_pwd ."
-                      "verify_pwd_label verify_pwd ."
-                      "signup_name_label signup_name .";
-
+  grid-template-areas:
+    'signup_id_label signup_id duplicate_btn'
+    'signup_pwd_label signup_pwd .'
+    'verify_pwd_label verify_pwd .'
+    'signup_name_label signup_name .';
 
   grid-template-columns: 150px 150px 100px;
   grid-template-rows: repeat(4, 30px);
@@ -40,11 +40,11 @@ const DuplicateBtn = styled.button`
   grid-area: duplicate_btn;
   width: 100px;
   height: 30px;
-  background-color: #F1EEEE;
+  background-color: #f1eeee;
   border: none;
   border-radius: 20px;
   margin-left: 20px;
-`
+`;
 
 const Input = styled.input`
   background-color: #d9d9d9;
@@ -103,4 +103,18 @@ const InputName = styled.input`
   border: 1px solid black;
 `;
 
-export { Container, Form, WrapForm, DuplicateBtn, Input, LabelID, InputID, LabelPwd, InputPwd, LabelVerifyPwd, InputVerifyPwd, LabelName, InputName };
+export {
+  Container,
+  Form,
+  WrapForm,
+  DuplicateBtn,
+  Input,
+  LabelID,
+  InputID,
+  LabelPwd,
+  InputPwd,
+  LabelVerifyPwd,
+  InputVerifyPwd,
+  LabelName,
+  InputName,
+};
