@@ -65,6 +65,10 @@ type ClubItem = {
   club_URL: string;
 };
 
+type UserClubAll = {
+  contents: Array<UserClubListItem>
+}
+
 type UserClubListItem = {
   club_id: number;
   club_name: string;
@@ -72,7 +76,10 @@ type UserClubListItem = {
 };
 
 type UserClubListItemEmpty = {
+  contents: {
     club_id: [];
+  }
+    
 }
 
 type FriendListItem = {
@@ -160,12 +167,22 @@ const MainLayout = () => {
     ).json();
 };
 
+/*
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
     const userID = sessionStorage.getItem('id');
     return await (
       await fetch(API_URL + '/club-service/registered/' + userID)
     ).json();
   };
+*/
+
+  const getUsersClubList = async (): Promise<UserClubAll> => {
+    const userID = sessionStorage.getItem('id');
+    return await (
+      await fetch(API_URL + '/club-service/registered/' + userID)
+    ).json();
+  };
+
 
   const getUsersClubListEmpty = async (): Promise<UserClubListItemEmpty> => {
     const userID = sessionStorage.getItem('id');
@@ -182,6 +199,24 @@ const MainLayout = () => {
     club_name: string,
     club_id: number
   ) => {
+    let club_id_unknown = club_id as unknown;
+    let clubID = club_id_unknown as string;
+    if (sessionStorage.getItem('clubID')) {
+      sessionStorage.removeItem('clubID')
+      sessionStorage.setItem('clubID', clubID)
+    }
+    else {
+      sessionStorage.setItem('clubID', clubID)
+    }
+
+    if (sessionStorage.getItem('clubName')) {
+      sessionStorage.removeItem('clubName')
+      sessionStorage.setItem('clubName', club_name)
+    }
+    else {
+      sessionStorage.setItem('clubName', club_name)
+    }
+    
     router.push(
       {
         pathname: './club/[club_name]',
@@ -258,489 +293,123 @@ const MainLayout = () => {
 
   if (error4) return <div>'Error..'</div>;
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3?.club_id == undefined)) && (data4 != undefined)) {
-
-    let usersClubListName: JSX.Element[];
-    usersClubListName = data2.map((club: UserClubListItem) => (
-      <JoinedClub key={club.club_id}>
+  /*
+  if ((data1 != undefined) && (data2 != undefined) && (data3?.club_id == undefined) && (data4 != undefined)) {
+    return (
+      <div>
+        { data1 && data1.구기체육분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
+                { data1 && data1.레저무예분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
+        { data2 && data2.contents.map((club: UserClubListItem) => {
+        return (<JoinedClub key={club.club_id}>
         <JoinedClubImg />
         <JoinedClubName>{club.club_name}</JoinedClubName>
-      </JoinedClub>
-    ));
+      </JoinedClub>)
+      })}
 
-    
-    let sports: JSX.Element[];
-    sports = data1.구기체육분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-          alt=""
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
       </div>
-    ));
+      
+    )
+  }
+  */
 
-    let leisure: JSX.Element[];
-    leisure = data1.레저무예분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3?.contents.club_id == undefined)) && (data4 != undefined)) {
 
-    let volunteer_work: JSX.Element[];
-    volunteer_work = data1.봉사분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let language: JSX.Element[];
-    language = data1.어학분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let art: JSX.Element[];
-    art = data1.연행예술분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let humanities: JSX.Element[];
-    humanities = data1.인문사회분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let science: JSX.Element[];
-    science = data1.자연과학분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let religion: JSX.Element[];
-    religion = data1.종교분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let creation: JSX.Element[];
-    creation = data1.창작비평분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let provisional_registration: JSX.Element[];
-    provisional_registration = data1.가등록.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
+    console.log(data4)
 
     if (data4.length == 0) {
+
       return (
         <Container>
           <Modal
@@ -835,7 +504,12 @@ const MainLayout = () => {
               </WrapFriendList>
               <WrapJoinedClub>
                 <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
+                <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
               </WrapJoinedClub>
             </UserInfo>
             <WrapUserStatus>
@@ -869,7 +543,7 @@ const MainLayout = () => {
                 동아리 만들기
               </button>
             </WrapTitle>
-            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+            <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
               <WrapClubTypes
                 style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
               >
@@ -880,7 +554,53 @@ const MainLayout = () => {
                       <div
                         style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {sports}
+                        { data1 && data1.구기체육분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -890,9 +610,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {leisure}
+                        { data1 && data1.레저무예분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -902,9 +668,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {volunteer_work}
+                        { data1 && data1.봉사분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -914,9 +726,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {language}
+                        { data1 && data1.어학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -926,9 +784,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {art}
+                        { data1 && data1.연행예술분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -938,9 +842,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {humanities}
+                        { data1 && data1.인문사회분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -950,9 +900,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {science}
+                        { data1 && data1.자연과학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -962,9 +958,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {religion}
+                        { data1 && data1.종교분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -974,9 +1016,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {creation}
+                        { data1 && data1.창작비평분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -986,9 +1074,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {provisional_registration}
+                        { data1 && data1.가등록.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1001,10 +1135,6 @@ const MainLayout = () => {
     }
 
     else {
-      let FriendList: JSX.Element[];
-                FriendList = data4.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
 
       return (
         <Container>
@@ -1096,11 +1226,22 @@ const MainLayout = () => {
                     }}
                   />
                 </WrapFriendListTitle>
-                <div>{FriendList}</div>
+                <div>
+                {data4 && data4.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}
+                </div>
               </WrapFriendList>
               <WrapJoinedClub>
                 <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                <div>{usersClubListName}</div>
+                <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
               </WrapJoinedClub>
             </UserInfo>
             <WrapUserStatus>
@@ -1134,7 +1275,7 @@ const MainLayout = () => {
                 동아리 만들기
               </button>
             </WrapTitle>
-            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+            <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
               <WrapClubTypes
                 style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
               >
@@ -1145,7 +1286,53 @@ const MainLayout = () => {
                       <div
                         style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {sports}
+                        { data1 && data1.구기체육분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1155,9 +1342,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {leisure}
+                        { data1 && data1.레저무예분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1167,9 +1400,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {volunteer_work}
+                        { data1 && data1.봉사분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1179,9 +1458,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {language}
+                        { data1 && data1.어학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1191,9 +1516,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {art}
+                        { data1 && data1.연행예술분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1203,9 +1574,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {humanities}
+                        { data1 && data1.인문사회분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1215,9 +1632,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {science}
+                        { data1 && data1.자연과학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1227,9 +1690,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {religion}
+                        { data1 && data1.종교분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1239,9 +1748,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {creation}
+                        { data1 && data1.창작비평분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1251,9 +1806,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {provisional_registration}
+                        { data1 && data1.가등록.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1269,477 +1870,9 @@ const MainLayout = () => {
     
   }
 
-  if((((data1 != undefined) && (data2 != undefined)) && (data3?.club_id != undefined)) && (data4 != undefined)) {
-    let sports: JSX.Element[];
-    sports = data1.구기체육분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-          alt=""
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
+  if((((data1 != undefined) && (data2 != undefined)) && (data3?.contents.club_id != undefined)) && (data4 != undefined)) {
 
-    let leisure: JSX.Element[];
-    leisure = data1.레저무예분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let volunteer_work: JSX.Element[];
-    volunteer_work = data1.봉사분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let language: JSX.Element[];
-    language = data1.어학분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let art: JSX.Element[];
-    art = data1.연행예술분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let humanities: JSX.Element[];
-    humanities = data1.인문사회분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let science: JSX.Element[];
-    science = data1.자연과학분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let religion: JSX.Element[];
-    religion = data1.종교분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let creation: JSX.Element[];
-    creation = data1.창작비평분과.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
-
-    let provisional_registration: JSX.Element[];
-    provisional_registration = data1.가등록.map((club: ClubItem) => (
-      <div
-        style={{
-          width: '300px',
-          borderRadius: '5px',
-          backgroundColor: 'white',
-        }}
-        key={club.club_name}
-      >
-        <img
-          src={club.club_img}
-          style={{
-            width: '300px',
-            height: '150px',
-            borderTopLeftRadius: '5px',
-            borderTopRightRadius: '5px',
-            objectFit: 'cover',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '10px',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {club.club_name}
-          </span>
-          <button
-            style={{
-              padding: '10px',
-              backgroundColor: '#D9D9D9',
-              borderRadius: '20px',
-            }}
-            onClick={() =>
-              onclick(club.club_name, club.club_id)
-            }
-          >
-            자세히 보기
-          </button>
-        </div>
-      </div>
-    ));
+    console.log(data4)
 
     if (data4.length == 0) {
       return (
@@ -1870,7 +2003,7 @@ const MainLayout = () => {
                 동아리 만들기
               </button>
             </WrapTitle>
-            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+            <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
               <WrapClubTypes
                 style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
               >
@@ -1881,7 +2014,53 @@ const MainLayout = () => {
                       <div
                         style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {sports}
+                        { data1 && data1.구기체육분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1891,9 +2070,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {leisure}
+                        { data1 && data1.레저무예분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1903,9 +2128,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {volunteer_work}
+                        { data1 && data1.봉사분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1915,9 +2186,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {language}
+                        { data1 && data1.어학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1927,9 +2244,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {art}
+                        { data1 && data1.연행예술분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1939,9 +2302,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {humanities}
+                        { data1 && data1.인문사회분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1951,9 +2360,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {science}
+                        { data1 && data1.자연과학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1963,9 +2418,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {religion}
+                        { data1 && data1.종교분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1975,9 +2476,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {creation}
+                        { data1 && data1.창작비평분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -1987,9 +2534,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {provisional_registration}
+                        { data1 && data1.가등록.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2002,11 +2595,6 @@ const MainLayout = () => {
     }
 
     else {
-
-      let FriendList: JSX.Element[];
-                FriendList = data4.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
 
       return (
         <Container>
@@ -2098,7 +2686,13 @@ const MainLayout = () => {
                     }}
                   />
                 </WrapFriendListTitle>
-                <div>{FriendList}</div>
+                <div>
+                {data4 && data4.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}
+                </div>
               </WrapFriendList>
               <WrapJoinedClub>
                 <ContentTitle>내가 참여 중인 동아리</ContentTitle>
@@ -2136,7 +2730,7 @@ const MainLayout = () => {
                 동아리 만들기
               </button>
             </WrapTitle>
-            <ScrollContainer style={{ height: '100vh' }} horizontal={false}>
+            <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
               <WrapClubTypes
                 style={{ display: 'flex', maxHeight: '400px', gap: '10px' }}
               >
@@ -2147,7 +2741,53 @@ const MainLayout = () => {
                       <div
                         style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {sports}
+                        { data1 && data1.구기체육분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2157,9 +2797,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {leisure}
+                        { data1 && data1.레저무예분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2169,9 +2855,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {volunteer_work}
+                        { data1 && data1.봉사분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2181,9 +2913,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {language}
+                        { data1 && data1.어학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2193,9 +2971,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {art}
+                        { data1 && data1.연행예술분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2205,9 +3029,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {humanities}
+                        { data1 && data1.인문사회분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2217,9 +3087,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {science}
+                        { data1 && data1.자연과학분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2229,9 +3145,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {religion}
+                        { data1 && data1.종교분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2241,9 +3203,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {creation}
+                        { data1 && data1.창작비평분과.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2253,9 +3261,55 @@ const MainLayout = () => {
                   <WrapClub>
                     <ScrollContainer style={{ width: '70vw' }} vertical={false}>
                       <div
-                        style={{ display: 'flex', maxWidth: '50px', gap: '10px' }}
+                        style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}
                       >
-                        {provisional_registration}
+                        { data1 && data1.가등록.map((club: ClubItem) => {
+          return (
+            <div
+            style={{
+              width: '300px',
+              borderRadius: '5px',
+              backgroundColor: 'white',
+            }}
+            key={club.club_name}
+          >
+            <img
+              src={club.club_img}
+              style={{
+                width: '300px',
+                height: '150px',
+                borderTopLeftRadius: '5px',
+                borderTopRightRadius: '5px',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '10px',
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                {club.club_name}
+              </span>
+              <button
+                style={{
+                  padding: '10px',
+                  backgroundColor: '#D9D9D9',
+                  borderRadius: '20px',
+                }}
+                onClick={() =>
+                  onclick(club.club_name, club.club_id)
+                }
+              >
+                자세히 보기
+              </button>
+            </div>
+          </div>
+          )
+        })}
                       </div>
                     </ScrollContainer>
                   </WrapClub>
@@ -2269,6 +3323,7 @@ const MainLayout = () => {
 
     
   }
+
 
   return <div>data is undefined</div>;
 };

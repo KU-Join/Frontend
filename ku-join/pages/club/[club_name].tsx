@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import LoadingSpinner from '../../public/Spinner.gif';
 import Image from 'next/image'
@@ -56,6 +56,10 @@ type ClubDetailInfoItem = {
   leader_id: string;
 }
 
+type UserClubAll = {
+  contents: Array<UserClubListItem>
+}
+
 type UserClubListItem = {
   club_id: number;
   club_name: string;
@@ -66,11 +70,21 @@ type UserClubListItemEmpty = {
   club_id: [];
 }
 
+
+type FeedAll = {
+  contents: Array<FeedItem>
+}
+
+
 type FeedItem = {
   feed_uploader: string;
   feed_img: string;
   feed_contents: string;
   time: string;
+}
+
+type CheckMemberLeaderAll = {
+  contents: Array<CheckMemberLeader>
 }
 
 type CheckMemberLeader = {
@@ -85,6 +99,14 @@ type FriendListItem = {
 }
 
 const Club_PR: NextPage = () => {
+  const queryClient = useQueryClient()
+  queryClient.invalidateQueries(['ClubDetailInfo'])
+  queryClient.invalidateQueries(['UsersclubList'])
+  queryClient.invalidateQueries(['ClubFeed'])
+  queryClient.invalidateQueries(['UsersClubListEmpty'])
+  queryClient.invalidateQueries(['MemberLeader'])
+  queryClient.invalidateQueries(['friends'])
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const router = useRouter();
@@ -95,6 +117,7 @@ const Club_PR: NextPage = () => {
   let clubidUnknown = club_id as unknown;
   let clubid = clubidUnknown as number
   let clubID = club_id as string
+
 
   const [friendID, setFriendID] = useState({
     friendid: '',
@@ -162,9 +185,18 @@ const Club_PR: NextPage = () => {
     );
   };
 
+/*
+  if (typeof window !== 'undefined') 
+ 
+  if (typeof sessionStorage.getItem('clubID') == 'string') {
+    let clubID = sessionStorage.getItem('clubID') as string
+    console.log(clubID)
+*/
+
   const JoinClubClick = () => {
     console.log("클릭중")
     const userID = sessionStorage.getItem('id');
+    const ClubID = sessionStorage.getItem('clubID');
 
     fetch(API_URL + '/club-service/club-apply', {
       method: "POST",
@@ -174,7 +206,7 @@ const Club_PR: NextPage = () => {
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({
-        club_id: clubID,
+        club_id: ClubID,
         user_id: userID
       })
     })
@@ -192,7 +224,16 @@ const Club_PR: NextPage = () => {
     ).json();
 };
 
+/*
   const getUsersClubList = async (): Promise<UserClubListItem[]> => {
+    const userID = sessionStorage.getItem('id');
+    return await (
+      await fetch(API_URL + '/club-service/registered/' + userID)
+    ).json();
+  };
+*/
+
+  const getUsersClubList = async (): Promise<UserClubAll> => {
     const userID = sessionStorage.getItem('id');
     return await (
       await fetch(API_URL + '/club-service/registered/' + userID)
@@ -206,18 +247,30 @@ const Club_PR: NextPage = () => {
     ).json();
   };
 
+  
   const getClubDetailInfo = async (): Promise<ClubDetailInfoItem> => {
-    return await (await fetch(API_URL + '/club-service/club-information/' + clubID)).json();
+    const ClubID = sessionStorage.getItem('clubID');
+    return await (await fetch(API_URL + '/club-service/club-information/' + ClubID)).json();
   }
 
+/*
   const getClubFeed = async (): Promise<FeedItem[]> => {
     return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
   }
+*/
+
+  
+  const getClubFeed = async (): Promise<FeedAll> => {
+    const ClubID = sessionStorage.getItem('clubID');
+    return await (await fetch(API_URL + '/club-service/club-feed/' + ClubID)).json();
+  }
+  
 
   const getCheckMemberLeader = async (): Promise<CheckMemberLeader> => {
     const userID = sessionStorage.getItem('id');
+    const ClubID = sessionStorage.getItem('clubID');
     return await (
-      await fetch(API_URL + '/club-service/registered/' + userID + '/' + clubID)).json();
+      await fetch(API_URL + '/club-service/registered/' + userID + '/' + ClubID)).json();
   }
 
   const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
@@ -235,6 +288,7 @@ const Club_PR: NextPage = () => {
   const {data: data5, isLoading: isLoading5, error: error5} = useQuery(['MemberLeader'], getCheckMemberLeader);
 
   const {data: data6, isLoading: isLoading6, error: error6} = useQuery(['friends'], getFriendList)
+
 
   if (isLoading1) {
     return (
@@ -302,10 +356,12 @@ const Club_PR: NextPage = () => {
 
   if (error6) return <div>'Error..'</div>;
 
-  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id == undefined) && (data6 != undefined)) {
+  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4 != undefined) && (data6 != undefined)) {
     /*data5의 경우의 수 - A 동아리의 리더(멤버O) / 리더X(멤버O) / 멤버X */
     /*data4?.club_id의 경우의 수 -undefined: 뭐라도 하나 속한 동아리가 있음. !undefined: 아무 곳에도 속한 동아리가 없음. 고로 A 동아리의 리더이거나 멤버일 수 없음. 무조건 멤버X암*/
 
+    console.log(data2)
+    
     const RecruitState: any = () => {
       if (data1.opened == true) {
         return (
@@ -376,46 +432,6 @@ const Club_PR: NextPage = () => {
         )
       }
     }
-  
-    let usersClubListName: JSX.Element[];
-    usersClubListName = data2.map((club: UserClubListItem) => (
-      <JoinedClub key={club.club_id}>
-        <JoinedClubImg />
-        <JoinedClubName>{club.club_name}</JoinedClubName>
-      </JoinedClub>
-    ));
-
-    let feedList: JSX.Element[];
-    feedList = data3.map((feed: FeedItem) => (
-      <div
-                style={{
-                  width: '300px',
-                  borderRadius: '5px',
-                  backgroundColor: 'white',
-                  textAlign: 'center',
-                  margin: '20px auto',
-                }}
-                key={feed.time}
-              >
-                <img
-                  src={feed.feed_img}
-                  style={{
-                    width: '300px',
-                    height: '400px',
-                    borderTopLeftRadius: '5px',
-                    borderTopRightRadius: '5px',
-                    objectFit: 'cover',
-                  }}
-                  alt=""
-                />
-                <div style={{ textAlign: 'left', padding: '10px' }}>
-                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                    {feed.feed_contents}
-                  </p>
-                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                </div>
-              </div>
-    ))
 
     if (data5.leader == true) {
 
@@ -518,7 +534,12 @@ const Club_PR: NextPage = () => {
                   </WrapFriendList>
                   <WrapJoinedClub>
                     <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                    <div>{usersClubListName}</div>
+                    <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                   </WrapJoinedClub>
                 </UserInfo>
                 <WrapUserStatus>
@@ -588,8 +609,40 @@ const Club_PR: NextPage = () => {
                   {data1.club_description}
             </p>
                 <div>
-                  <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                      {feedList}
+                  <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                  {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                   </ScrollContainer>
                 </div>
               </Contents>
@@ -599,10 +652,6 @@ const Club_PR: NextPage = () => {
       }
 
       else {
-        let FriendList: JSX.Element[];
-                FriendList = data6.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
 
         return(
           <Container>
@@ -697,11 +746,20 @@ const Club_PR: NextPage = () => {
                         }}
                       />
                     </WrapFriendListTitle>
-                    <div>{FriendList}</div>
+                    <div>{data6 && data6.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}</div>
                   </WrapFriendList>
                   <WrapJoinedClub>
                     <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                    <div>{usersClubListName}</div>
+                    <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                   </WrapJoinedClub>
                 </UserInfo>
                 <WrapUserStatus>
@@ -771,8 +829,40 @@ const Club_PR: NextPage = () => {
                   {data1.club_description}
             </p>
                 <div>
-                  <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                      {feedList}
+                  <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                  {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                   </ScrollContainer>
                 </div>
               </Contents>
@@ -885,7 +975,12 @@ const Club_PR: NextPage = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -939,8 +1034,40 @@ const Club_PR: NextPage = () => {
                 {data1.club_description}
           </p>
               <div>
-                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                    {feedList}
+                <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                 </ScrollContainer>
               </div>
             </Contents>
@@ -950,11 +1077,6 @@ const Club_PR: NextPage = () => {
       }
 
       else {
-
-        let FriendList: JSX.Element[];
-                FriendList = data6.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
 
         return (
           <Container>
@@ -1049,11 +1171,20 @@ const Club_PR: NextPage = () => {
                       }}
                     />
                   </WrapFriendListTitle>
-                  <div>{FriendList}</div>
+                  <div>{data6 && data6.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}</div>
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -1107,8 +1238,40 @@ const Club_PR: NextPage = () => {
                 {data1.club_description}
           </p>
               <div>
-                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                    {feedList}
+                <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                 </ScrollContainer>
               </div>
             </Contents>
@@ -1219,7 +1382,12 @@ const Club_PR: NextPage = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -1265,8 +1433,40 @@ const Club_PR: NextPage = () => {
                 {data1.club_description}
           </p>
               <div>
-                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                    {feedList}
+                <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                 </ScrollContainer>
               </div>
             </Contents>
@@ -1276,11 +1476,6 @@ const Club_PR: NextPage = () => {
       }
 
       else {
-
-        let FriendList: JSX.Element[];
-                FriendList = data6.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
 
         return (
           <Container>
@@ -1375,11 +1570,15 @@ const Club_PR: NextPage = () => {
                       }}
                     />
                   </WrapFriendListTitle>
-                  <div>{FriendList}</div>
+                  <div>{data6 && data6.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}</div>
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "20px"}}>가입한 동아리가 없습니다.</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -1425,8 +1624,40 @@ const Club_PR: NextPage = () => {
                 {data1.club_description}
           </p>
               <div>
-                <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                    {feedList}
+                <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
                 </ScrollContainer>
               </div>
             </Contents>
@@ -1439,7 +1670,11 @@ const Club_PR: NextPage = () => {
 
   }
 
-  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4?.club_id != undefined) && (data6 != undefined)) {
+  /*
+  if (((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined)) && (data5 != undefined)) && (data4 != undefined) && (data6 != undefined)) {
+
+    console.log(data4)
+    console.log("hey")
 
     const JoinState: any = () => {
       if (data1.opened == true) {
@@ -1476,38 +1711,6 @@ const Club_PR: NextPage = () => {
         )
       }
     }
-
-    let feedList: JSX.Element[];
-    feedList = data3.map((feed: FeedItem) => (
-      <div
-                style={{
-                  width: '300px',
-                  borderRadius: '5px',
-                  backgroundColor: 'white',
-                  textAlign: 'center',
-                  margin: '20px auto',
-                }}
-                key={feed.time}
-              >
-                <img
-                  src={feed.feed_img}
-                  style={{
-                    width: '300px',
-                    height: '400px',
-                    borderTopLeftRadius: '5px',
-                    borderTopRightRadius: '5px',
-                    objectFit: 'cover',
-                  }}
-                  alt=""
-                />
-                <div style={{ textAlign: 'left', padding: '10px' }}>
-                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                    {feed.feed_contents}
-                  </p>
-                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                </div>
-              </div>
-    ))
 
     if (data6.length == 0) {
       return (
@@ -1653,8 +1856,40 @@ const Club_PR: NextPage = () => {
               {data1.club_description}
         </p>
             <div>
-              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                  {feedList}
+              <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+              {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
               </ScrollContainer>
             </div>
           </Contents>
@@ -1664,10 +1899,6 @@ const Club_PR: NextPage = () => {
     }
 
     else {
-      let FriendList: JSX.Element[];
-                FriendList = data6.map((Friends: FriendListItem) => (
-                      <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
-                ));
       
       return (
         <Container>
@@ -1762,7 +1993,11 @@ const Club_PR: NextPage = () => {
                     }}
                   />
                 </WrapFriendListTitle>
-                <div>{FriendList}</div>
+                <div>{data6 && data6.map((Friends: FriendListItem) => {
+                  return (
+                    <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
+                  )
+                })}</div>
               </WrapFriendList>
               <WrapJoinedClub>
                 <ContentTitle>내가 참여 중인 동아리</ContentTitle>
@@ -1812,18 +2047,52 @@ const Club_PR: NextPage = () => {
               {data1.club_description}
         </p>
             <div>
-              <ScrollContainer style={{ height: '80vw' }} vertical={false}>
-                  {feedList}
+              <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                
+              {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+
               </ScrollContainer>
             </div>
           </Contents>
         </Container>
       );
     }
-
+    
   }
-
+  */
+  
   return <div>data is undefined</div>;
-};
+}
 
 export default Club_PR;

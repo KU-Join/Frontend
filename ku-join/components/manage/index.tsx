@@ -56,7 +56,7 @@ import Modal from 'react-modal';
 import { BsFillMicFill, BsPlusLg, BsFillMicMuteFill } from 'react-icons/bs';
 import { MdHeadset, MdHeadsetOff } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
-import { AiFillCloseSquare } from 'react-icons/ai'
+import { AiFillCloseSquare } from 'react-icons/ai';
 
 type ClubDetailInfoItem = {
     club_id: number;
@@ -69,11 +69,19 @@ type ClubDetailInfoItem = {
     leader_id: string;
   }
 
+  type UserClubAll = {
+    contents: Array<UserClubListItem>
+  }
+
 type UserClubListItem = {
   club_id: number;
   club_name: string;
   leader: boolean;
 };
+
+type FeedAll = {
+  contents: Array<FeedItem>
+}
 
 type FeedItem = {
     feed_uploader: string;
@@ -81,6 +89,10 @@ type FeedItem = {
     feed_contents: string;
     time: string;
   }
+
+type JoinPersonAll = {
+  contents: Array<JoinPersonItem>
+}
 
 type JoinPersonItem = {
     apply_id: string;
@@ -90,7 +102,13 @@ type JoinPersonItem = {
 }
 
 type JoinPersonItemEmpty = {
-  club_id: [];
+  contents: {
+    club_id: [];
+  }
+}
+
+type ClubMemberAll = {
+  contents: Array<ClubMemberItem>
 }
 
 type ClubMemberItem = {
@@ -114,9 +132,11 @@ const ManagementLayout = () => {
 
   let clubID = club_id as string;
 
+  /*
   const userID = sessionStorage.getItem('id');
 
   const userid = userID as string;
+  */
 
   const [friendID, setFriendID] = useState({
     friendid: '',
@@ -208,6 +228,10 @@ const ManagementLayout = () => {
   }
 
   const handleFeedSubmit = (e:any) => {
+    const ClubID = sessionStorage.getItem('clubID') as string;
+    const userID = sessionStorage.getItem('id');
+    const userid = userID as string;
+
     if(inputRef2.current.placeholder == '파일 이름') {
         e.preventDefault();
         alert("피드 이미지를 등록해주세요.")
@@ -221,7 +245,8 @@ const ManagementLayout = () => {
     }
 
     const formData = new FormData();
-        formData.append("club_id", clubID);
+        
+        formData.append("club_id", ClubID);
         formData.append("feed_uploader", userid);
         formData.append("feed_contents", feed.feed_comment);
         formData.append("feed_image", feedFiles[0]);
@@ -241,7 +266,9 @@ const ManagementLayout = () => {
   }
 
   const ApproveJoinclub = (ApplyID:string) => {
-    fetch(API_URL + "/club-service/club-apply/" + clubID, {
+    const ClubID = sessionStorage.getItem('clubID') as string;
+    const userID = sessionStorage.getItem('id') as string;
+    fetch(API_URL + "/club-service/club-apply/" + ClubID, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -249,7 +276,7 @@ const ManagementLayout = () => {
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify({
-        user_id: userid,
+        user_id: userID,
         apply_id: ApplyID,
         accept: true
       })
@@ -271,7 +298,7 @@ const ManagementLayout = () => {
     ).json();
 };
 
-  const getUsersClubList = async (): Promise<UserClubListItem[]> => {
+  const getUsersClubList = async (): Promise<UserClubAll> => {
     const userID = sessionStorage.getItem('id');
     return await (
       await fetch(API_URL + '/club-service/registered/' + userID)
@@ -279,27 +306,35 @@ const ManagementLayout = () => {
   };
 
   const getClubDetailInfo = async (): Promise<ClubDetailInfoItem> => {
-    return await (await fetch(API_URL + '/club-service/club-information/' + clubID)).json();
+    const ClubID = sessionStorage.getItem('clubID')
+    return await (await fetch(API_URL + '/club-service/club-information/' + ClubID)).json();
   }
 
-  const getClubFeed = async (): Promise<FeedItem[]> => {
-    return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
+  const getClubFeed = async (): Promise<FeedAll> => {
+    const ClubID = sessionStorage.getItem('clubID')
+    return await (await fetch(API_URL + '/club-service/club-feed/' + ClubID)).json();
   }
 
   const getClubFeedEmpty = async (): Promise<any> => {
-    return await (await fetch(API_URL + '/club-service/club-feed/' + clubID)).json();
+    const ClubID = sessionStorage.getItem('clubID')
+    return await (await fetch(API_URL + '/club-service/club-feed/' + ClubID)).json();
   }
 
-  const getJoinList = async (): Promise<JoinPersonItem[]> => {
-    return await (await fetch(API_URL + '/club-service/club-apply/' + clubID + '?user_id=' + userID)).json();
+  const getJoinList = async (): Promise<JoinPersonAll> => {
+    const ClubID = sessionStorage.getItem('clubID')
+    const userID = sessionStorage.getItem('id') as string;
+    return await (await fetch(API_URL + '/club-service/club-apply/' + ClubID + '?user_id=' + userID)).json();
   }
 
   const getJoinListEmpty = async (): Promise<JoinPersonItemEmpty> => {
-    return await (await fetch(API_URL + '/club-service/club-apply/' + clubID + '?user_id=' + userID)).json();
+    const ClubID = sessionStorage.getItem('clubID')
+    const userID = sessionStorage.getItem('id') as string;
+    return await (await fetch(API_URL + '/club-service/club-apply/' + ClubID + '?user_id=' + userID)).json();
   }
 
-  const getClubMemberList = async (): Promise<ClubMemberItem[]> => {
-    return await (await fetch(API_URL + '/club-service/club-member/' + clubID)).json();
+  const getClubMemberList = async (): Promise<ClubMemberAll> => {
+    const ClubID = sessionStorage.getItem('clubID')
+    return await (await fetch(API_URL + '/club-service/club-member/' + ClubID)).json();
   }
 
   const {data: data1, isLoading: isLoading1, error: error1} = useQuery(['ClubDetailInfo'], getClubDetailInfo)
@@ -416,18 +451,28 @@ const ManagementLayout = () => {
 
 
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id == undefined) && (data8 != undefined)) {
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.contents.club_id == undefined) && (data8 != undefined)) {
+
+    const userID = sessionStorage.getItem('id') as string;
 
     if (data1.opened == true) {
       const EditClubInfo = () => {
 
         const formData = new FormData();
+
         formData.append("club_name", data1.club_name);
-        formData.append("club_description", introduction.comment) //수정 가능
-        formData.append("category", data1.category)
-        formData.append("leader_id", data1.leader_id);
-        formData.append("club_img", files[0]); // 수정 가능
-  
+
+        if (introduction.comment == "") {
+          formData.append("club_description", data1.club_description) //수정 가능
+        }
+
+        else {
+          formData.append("club_description", introduction.comment) //수정 가능
+        }
+
+          formData.append("category", data1.category)
+          formData.append("leader_id", data1.leader_id);
+
         if (RecruitIsOpen == true) {
           formData.append("opened", "true")
         }
@@ -435,10 +480,14 @@ const ManagementLayout = () => {
         else {
           formData.append("opened", "false")
         }
+
+        if (files[0] != undefined) {
+          formData.append("club_img", files[0]); // 수정 가능
+        }
   
         
-    
-        fetch(API_URL + "/club-service/update-club-form/" + clubID, {
+        let ClubID = sessionStorage.getItem('clubID') as string;
+        fetch(API_URL + "/club-service/update-club-form/" + ClubID, {
           method: "POST",
           body: formData
         })
@@ -446,78 +495,7 @@ const ManagementLayout = () => {
           response.status == 200 ? alert("동아리 정보 수정 완료") : alert("동아리 정보 수정 실패")
         })
       }
-  
-      let usersClubListName: JSX.Element[];
-      usersClubListName = data2.map((club: UserClubListItem) => (
-        <JoinedClub key={club.club_id}>
-          <JoinedClubImg />
-          <JoinedClubName>{club.club_name}</JoinedClubName>
-        </JoinedClub>
-      ));
-  
-      let feedList: JSX.Element[];
-      feedList = data3.map((feed: FeedItem) => (
-        <div
-                  style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'white',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                  }}
-                  key={feed.time}
-                >
-                  <img
-                    src={feed.feed_img}
-                    style={{
-                      width: '300px',
-                      height: '400px',
-                      borderTopLeftRadius: '5px',
-                      borderTopRightRadius: '5px',
-                      objectFit: 'cover',
-                    }}
-                    alt=""
-                  />
-                  <div style={{ textAlign: 'left', padding: '10px' }}>
-                    <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                      {feed.feed_contents}
-                    </p>
-                    <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                  </div>
-                </div>
-      ))
-  
-      let JoinPersonList: JSX.Element[];
-      JoinPersonList = data5.map((Person: JoinPersonItem) => (
-        <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  key={Person.user_id}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <UserImg />
-                      <MemberName>{Person.user_id}</MemberName>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
-                    </div>
-                  </div>
-      ))
-  
-      let MemberList: JSX.Element[];
-      MemberList = data7.map((Member: ClubMemberItem) => (
-        <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
-              <UserImg />
-              <MemberName>{Member.user_id}</MemberName>
-          </div>
-          <Button>탈퇴</Button>
-        </div>
-      ))
+
 
       if (data8.length == 0) {
 
@@ -680,7 +658,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -733,7 +716,27 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {JoinPersonList}
+                      {data5 && data5.contents.map((Person: JoinPersonItem) => {
+        return (
+          <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={Person.user_id}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <UserImg />
+                      <MemberName>{Person.user_id}</MemberName>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                    </div>
+                  </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -741,7 +744,17 @@ const ManagementLayout = () => {
                       동아리원 관리
                     </TabTitle>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                      {MemberList}
+                    {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -803,7 +816,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -988,7 +1034,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -1041,7 +1092,27 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {JoinPersonList}
+                      {data5 && data5.contents.map((Person: JoinPersonItem) => {
+        return (
+          <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={Person.user_id}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <UserImg />
+                      <MemberName>{Person.user_id}</MemberName>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                    </div>
+                  </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -1049,7 +1120,17 @@ const ManagementLayout = () => {
                       동아리원 관리
                     </TabTitle>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                      {MemberList}
+                    {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -1111,7 +1192,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -1137,23 +1251,36 @@ const ManagementLayout = () => {
       const EditClubInfo = () => {
 
         const formData = new FormData();
+
         formData.append("club_name", data1.club_name);
-        formData.append("club_description", introduction.comment) //수정 가능
-        formData.append("category", data1.category)
-        formData.append("leader_id", data1.leader_id);
-        formData.append("club_img", files[0]); // 수정 가능
-  
-        if (RecruitIsOpen2 == true) {
+
+        if (introduction.comment == "") {
+          formData.append("club_description", data1.club_description) //수정 가능
+        }
+
+        else {
+          formData.append("club_description", introduction.comment) //수정 가능
+        }
+
+          formData.append("category", data1.category)
+          formData.append("leader_id", data1.leader_id);
+
+        if (RecruitIsOpen == true) {
           formData.append("opened", "true")
         }
         
         else {
           formData.append("opened", "false")
         }
+
+        if (files[0] != undefined) {
+          formData.append("club_img", files[0]); // 수정 가능
+        }
   
         
+        let ClubID = sessionStorage.getItem('clubID') as string;
     
-        fetch(API_URL + "/club-service/update-club-form/" + clubID, {
+        fetch(API_URL + "/club-service/update-club-form/" + ClubID, {
           method: "POST",
           body: formData
         })
@@ -1161,78 +1288,6 @@ const ManagementLayout = () => {
           response.status == 200 ? alert("동아리 정보 수정 완료") : alert("동아리 정보 수정 실패")
         })
       }
-  
-      let usersClubListName: JSX.Element[];
-      usersClubListName = data2.map((club: UserClubListItem) => (
-        <JoinedClub key={club.club_id}>
-          <JoinedClubImg />
-          <JoinedClubName>{club.club_name}</JoinedClubName>
-        </JoinedClub>
-      ));
-  
-      let feedList: JSX.Element[];
-      feedList = data3.map((feed: FeedItem) => (
-        <div
-                  style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'white',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                  }}
-                  key={feed.time}
-                >
-                  <img
-                    src={feed.feed_img}
-                    style={{
-                      width: '300px',
-                      height: '400px',
-                      borderTopLeftRadius: '5px',
-                      borderTopRightRadius: '5px',
-                      objectFit: 'cover',
-                    }}
-                    alt=""
-                  />
-                  <div style={{ textAlign: 'left', padding: '10px' }}>
-                    <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                      {feed.feed_contents}
-                    </p>
-                    <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                  </div>
-                </div>
-      ))
-  
-      let JoinPersonList: JSX.Element[];
-      JoinPersonList = data5.map((Person: JoinPersonItem) => (
-        <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  key={Person.user_id}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <UserImg />
-                      <MemberName>{Person.user_id}</MemberName>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
-                    </div>
-                  </div>
-      ))
-  
-      let MemberList: JSX.Element[];
-      MemberList = data7.map((Member: ClubMemberItem) => (
-        <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
-              <UserImg />
-              <MemberName>{Member.user_id}</MemberName>
-          </div>
-          <Button>탈퇴</Button>
-        </div>
-      ))
 
       if (data8.length == 0) {
         return (
@@ -1394,7 +1449,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -1447,7 +1507,27 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {JoinPersonList}
+                      {data5 && data5.contents.map((Person: JoinPersonItem) => {
+        return (
+          <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={Person.user_id}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <UserImg />
+                      <MemberName>{Person.user_id}</MemberName>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                    </div>
+                  </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -1455,7 +1535,17 @@ const ManagementLayout = () => {
                       동아리원 관리
                     </TabTitle>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                      {MemberList}
+                    {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -1517,7 +1607,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{display: "flex", maxWidth: '50px', gap: '50px'}}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -1537,6 +1660,8 @@ const ManagementLayout = () => {
       }
 
       else {
+
+        console.log(data5)
 
         let FriendList: JSX.Element[];
                 FriendList = data8.map((Friends: FriendListItem) => (
@@ -1702,7 +1827,12 @@ const ManagementLayout = () => {
                         </WrapFriendList>
                         <WrapJoinedClub>
                           <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                          <div>{usersClubListName}</div>
+                          <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                         </WrapJoinedClub>
                       </UserInfo>
                       <WrapUserStatus>
@@ -1755,7 +1885,29 @@ const ManagementLayout = () => {
                             <div
                               style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                             >
-                              {JoinPersonList}
+                              {data5 && data5.contents.map((Person: JoinPersonItem) => {
+        return (
+          <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={Person.user_id}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <UserImg />
+                      <MemberName>{Person.user_id}</MemberName>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                    </div>
+                  </div>
+        )
+      })}
+                              
+                              
                             </div>
                           </WrapTab>
                           <WrapTab>
@@ -1763,7 +1915,17 @@ const ManagementLayout = () => {
                               동아리원 관리
                             </TabTitle>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}>
-                              {MemberList}
+                            {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                             </div>
                           </WrapTab>
                           <WrapTab>
@@ -1825,7 +1987,40 @@ const ManagementLayout = () => {
                               <TabSubTitle>피드</TabSubTitle>
                               <div>
                                 <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                                    {feedList}
+                                  <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                                  {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                                  </div>
                                 </ScrollContainer>
                               </div>
                               <Button onClick={() => {
@@ -1848,18 +2043,28 @@ const ManagementLayout = () => {
     
   }
 
-  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.club_id != undefined) && (data8 != undefined)) {
+  if ((((data1 != undefined) && (data2 != undefined)) && (data3 != undefined) && (data5 != undefined) && (data7 != undefined)) && (data6?.contents.club_id != undefined) && (data8 != undefined)) {
+
+    const userID = sessionStorage.getItem('id') as string;
 
     if (data1.opened == true) {
       const EditClubInfo = () => {
 
         const formData = new FormData();
+
         formData.append("club_name", data1.club_name);
-        formData.append("club_description", introduction.comment) //수정 가능
-        formData.append("category", data1.category)
-        formData.append("leader_id", data1.leader_id);
-        formData.append("club_img", files[0]); // 수정 가능
-  
+
+        if (introduction.comment == "") {
+          formData.append("club_description", data1.club_description) //수정 가능
+        }
+
+        else {
+          formData.append("club_description", introduction.comment) //수정 가능
+        }
+
+          formData.append("category", data1.category)
+          formData.append("leader_id", data1.leader_id);
+
         if (RecruitIsOpen == true) {
           formData.append("opened", "true")
         }
@@ -1867,75 +2072,26 @@ const ManagementLayout = () => {
         else {
           formData.append("opened", "false")
         }
+
+        if (files[0] != undefined) {
+          formData.append("club_img", files[0]); // 수정 가능
+        }
+  
+        
+        let ClubID = sessionStorage.getItem('clubID') as string;
   
     
-        fetch(API_URL + "/club-service/update-club-form/" + clubID, {
+        fetch(API_URL + "/club-service/update-club-form/" + ClubID, {
           method: "POST",
           body: formData
         })
         .then((response) => {
           response.status == 200 ? alert("동아리 정보 수정 완료") : alert("동아리 정보 수정 실패")
         })
+
+        
       }
-  
-      let usersClubListName: JSX.Element[];
-      usersClubListName = data2.map((club: UserClubListItem) => (
-        <JoinedClub key={club.club_id}>
-          <JoinedClubImg />
-          <JoinedClubName>{club.club_name}</JoinedClubName>
-        </JoinedClub>
-      ));
-  
-      let feedList: JSX.Element[];
-      feedList = data3.map((feed: FeedItem) => (
-        <div
-                  style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'white',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                  }}
-                  key={feed.time}
-                >
-                  <img
-                    src={feed.feed_img}
-                    style={{
-                      width: '300px',
-                      height: '400px',
-                      borderTopLeftRadius: '5px',
-                      borderTopRightRadius: '5px',
-                      objectFit: 'cover',
-                    }}
-                    alt=""
-                  />
-                  <div style={{ textAlign: 'left', padding: '10px' }}>
-                    <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                      {feed.feed_contents}
-                    </p>
-                    <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                  </div>
-                </div>
-      ))
-  
-      let MemberList: JSX.Element[];
-      MemberList = data7.map((Member: ClubMemberItem) => (
-        <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  key={Member.user_id}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <UserImg />
-                      <MemberName>{Member.user_id}</MemberName>
-                    </div>
-                    <Button>탈퇴</Button>
-                  </div>
-      ))
+
 
       if (data8.length == 0) {
 
@@ -2098,7 +2254,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -2157,7 +2318,17 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {MemberList}
+                      {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -2219,7 +2390,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>   
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -2239,6 +2443,8 @@ const ManagementLayout = () => {
       }
 
       else {
+        console.log(data5)
+
         let FriendList: JSX.Element[];
                 FriendList = data8.map((Friends: FriendListItem) => (
                       <div>{Friends.state == "ACCEPT" && <Friend key={Friends.email}>{Friends.nickname}</Friend>}</div>
@@ -2404,7 +2610,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -2463,7 +2674,17 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {MemberList}
+                      {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -2525,7 +2746,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>  
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -2548,25 +2802,41 @@ const ManagementLayout = () => {
     }
 
     else {
+
       const EditClubInfo = () => {
 
         const formData = new FormData();
+
         formData.append("club_name", data1.club_name);
-        formData.append("club_description", introduction.comment) //수정 가능
-        formData.append("category", data1.category)
-        formData.append("leader_id", data1.leader_id);
-        formData.append("club_img", files[0]); // 수정 가능
-  
-        if (RecruitIsOpen2 == true) {
+
+        if (introduction.comment == "") {
+          formData.append("club_description", data1.club_description) //수정 가능
+        }
+
+        else {
+          formData.append("club_description", introduction.comment) //수정 가능
+        }
+
+          formData.append("category", data1.category)
+          formData.append("leader_id", data1.leader_id);
+
+        if (RecruitIsOpen == true) {
           formData.append("opened", "true")
         }
         
         else {
           formData.append("opened", "false")
         }
+
+        if (files[0] != undefined) {
+          formData.append("club_img", files[0]); // 수정 가능
+        }
+  
+        
+        let ClubID = sessionStorage.getItem('clubID') as string;
   
     
-        fetch(API_URL + "/club-service/update-club-form/" + clubID, {
+        fetch(API_URL + "/club-service/update-club-form/" + ClubID, {
           method: "POST",
           body: formData
         })
@@ -2574,65 +2844,6 @@ const ManagementLayout = () => {
           response.status == 200 ? alert("동아리 정보 수정 완료") : alert("동아리 정보 수정 실패")
         })
       }
-  
-      let usersClubListName: JSX.Element[];
-      usersClubListName = data2.map((club: UserClubListItem) => (
-        <JoinedClub key={club.club_id}>
-          <JoinedClubImg />
-          <JoinedClubName>{club.club_name}</JoinedClubName>
-        </JoinedClub>
-      ));
-  
-      let feedList: JSX.Element[];
-      feedList = data3.map((feed: FeedItem) => (
-        <div
-                  style={{
-                    width: '300px',
-                    borderRadius: '5px',
-                    backgroundColor: 'white',
-                    textAlign: 'center',
-                    margin: '20px auto',
-                  }}
-                  key={feed.time}
-                >
-                  <img
-                    src={feed.feed_img}
-                    style={{
-                      width: '300px',
-                      height: '400px',
-                      borderTopLeftRadius: '5px',
-                      borderTopRightRadius: '5px',
-                      objectFit: 'cover',
-                    }}
-                    alt=""
-                  />
-                  <div style={{ textAlign: 'left', padding: '10px' }}>
-                    <p style={{ fontSize: '16px', marginBottom: '5px' }}>
-                      {feed.feed_contents}
-                    </p>
-                    <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
-                  </div>
-                </div>
-      ))
-  
-      let MemberList: JSX.Element[];
-      MemberList = data7.map((Member: ClubMemberItem) => (
-        <div
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  key={Member.user_id}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '10px',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <UserImg />
-                      <MemberName>{Member.user_id}</MemberName>
-                    </div>
-                    <Button>탈퇴</Button>
-                  </div>
-      ))
 
       if (data8.length == 0) {
 
@@ -2795,7 +3006,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -2854,7 +3070,17 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {MemberList}
+                      {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -2916,7 +3142,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div> 
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {
@@ -2936,6 +3195,7 @@ const ManagementLayout = () => {
       }
 
       else {
+        console.log(data5)
 
         let FriendList: JSX.Element[];
                 FriendList = data8.map((Friends: FriendListItem) => (
@@ -3101,7 +3361,12 @@ const ManagementLayout = () => {
                 </WrapFriendList>
                 <WrapJoinedClub>
                   <ContentTitle>내가 참여 중인 동아리</ContentTitle>
-                  <div>{usersClubListName}</div>
+                  <div style={{marginTop: "10px"}}>{ data2 && data2.contents.map((club: UserClubListItem) => {
+                return (<JoinedClub key={club.club_id}>
+                <JoinedClubImg />
+                <JoinedClubName>{club.club_name}</JoinedClubName>
+              </JoinedClub>)
+              })}</div>
                 </WrapJoinedClub>
               </UserInfo>
               <WrapUserStatus>
@@ -3151,7 +3416,29 @@ const ManagementLayout = () => {
                     <TabTitle style={{ marginBottom: '20px' }}>
                       동아리 가입 승인
                     </TabTitle>
-                    <div style={{color: "white"}}>가입을 신청한 사람이 없습니다.</div>
+                    <div style={{color: "white"}}>
+                    {data5 && data5.contents.map((Person: JoinPersonItem) => {
+        return (
+          <div
+                    style={{ display: 'flex', justifyContent: 'space-between' }}
+                  key={Person.user_id}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '10px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <UserImg />
+                      <MemberName>{Person.user_id}</MemberName>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <Button onClick={() => ApproveJoinclub(Person.apply_id)}>승인</Button>
+                    </div>
+                  </div>
+        )
+      })}
+                    </div>
                   </WrapTab>
                   <WrapTab>
                     <TabTitle style={{ marginBottom: '20px' }}>
@@ -3160,7 +3447,17 @@ const ManagementLayout = () => {
                     <div
                       style={{ display: 'flex', flexDirection: 'column', gap: "10px"}}
                     >
-                      {MemberList}
+                      {data7 && data7.contents.map((Member: ClubMemberItem) => {
+        return (
+          <div style={{display: "flex", justifyContent: 'space-between' }} key={Member.user_id}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}}>
+              <UserImg />
+              <MemberName>{Member.user_id}</MemberName>
+          </div>
+          <Button>탈퇴</Button>
+        </div>
+        )
+      })}
                     </div>
                   </WrapTab>
                   <WrapTab>
@@ -3222,7 +3519,40 @@ const ManagementLayout = () => {
                       <TabSubTitle>피드</TabSubTitle>
                       <div>
                         <ScrollContainer style={{ width: '70vw' }} vertical={false}>
-                            {feedList}
+                          <div style={{ display: 'flex', maxWidth: '50px', gap: '50px' }}>
+                          {data3 && data3.contents.map((feed: FeedItem) => {
+      return (
+        <div
+                style={{
+                  width: '300px',
+                  borderRadius: '5px',
+                  backgroundColor: 'white',
+                  textAlign: 'center',
+                  margin: '20px auto',
+                }}
+                key={feed.time}
+              >
+                <img
+                  src={feed.feed_img}
+                  style={{
+                    width: '300px',
+                    height: '400px',
+                    borderTopLeftRadius: '5px',
+                    borderTopRightRadius: '5px',
+                    objectFit: 'cover',
+                  }}
+                  alt=""
+                />
+                <div style={{ textAlign: 'left', padding: '10px' }}>
+                  <p style={{ fontSize: '16px', marginBottom: '5px' }}>
+                    {feed.feed_contents}
+                  </p>
+                  <p style={{ fontSize: '8px', color: '#333333' }}>{feed.time}</p>
+                </div>
+              </div>
+      )
+    })}
+                          </div>   
                         </ScrollContainer>
                       </div>
                       <Button onClick={() => {

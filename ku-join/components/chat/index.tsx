@@ -40,10 +40,19 @@ import { BsFillMicFill, BsFillMicMuteFill } from 'react-icons/bs';
 import { MdHeadset, MdHeadsetOff } from 'react-icons/md';
 import { RiSettings2Fill } from 'react-icons/ri';
 import { MemberName } from "../manage/manage-style";
+import { type } from "os";
+
+  type ClubMemberAll = {
+    contents: Array<ClubMemberItem>
+  }
 
   type ClubMemberItem = {
     user_id: string;
     leader: boolean;
+  }
+
+  type ChatAll = {
+    chatData: Array<ChatContent>
   }
 
   type ChatContent = {
@@ -63,18 +72,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
 
   const { club_name, club_id } = router.query;
 
-  let clubID = club_id as string;
+  /*
 
+  let clubID = club_id as string;
+  
   const userID = sessionStorage.getItem('id');
 
   const userid = userID as string;
 
   const clubname = club_name as string;
+  */
 
   const [userData, setUserData] = useState({
-    userName: userid,
-    content: "",
-    clubName: clubname
+    content: ""
   })
 
   const [MICIsOn, setMICIsOn] = useState(true);
@@ -110,12 +120,20 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     router.push('./');
   };
 
-  const getClubMemberList = async (): Promise<ClubMemberItem[]> => {
-    return await (await fetch(API_URL + '/club-service/club-member/' + clubID)).json();
+  const getClubMemberList = async (): Promise<ClubMemberAll> => {
+    const ClubID = sessionStorage.getItem('clubID')
+    return await (await fetch(API_URL + '/club-service/club-member/' + ClubID)).json();
   }
 
+  /*
   const getChatContent = async (): Promise<ChatContent[]> => {
     return await (await fetch(API_URL + '/chat-service/' + clubname)).json();
+  }
+  */
+
+  const getChatContent = async (): Promise<ChatAll> => {
+    const ClubName = sessionStorage.getItem('clubName')
+    return await (await fetch(API_URL + '/chat-service/' + ClubName)).json();
   }
 
   let Sock = new SockJS('http://52.79.246.49:8000/chat-service/chatting');
@@ -125,7 +143,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
   stompClient.heartbeat.incoming = 0; 
   const onConnected = () => {
     console.log("연결 성공")
-    stompClient.subscribe('/topic/'+userData.clubName, onPublicMessageReceived);
+    const ClubName = sessionStorage.getItem('clubName')
+    stompClient.subscribe('/topic/'+ClubName, onPublicMessageReceived);
   }
 
   const onError = (err:any) => {
@@ -144,11 +163,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     stompClient.connect({}, onConnected, onError);
 
   const sendPublicMessage = () => {
+    const ClubName = sessionStorage.getItem('clubName')
+    const userID = sessionStorage.getItem('id') as string;
     if (stompClient) {
         let chatMessage={
-            userName: userData.userName,
+            userName: userID,
             content: userData.content,
-            clubName: userData.clubName
+            clubName: ClubName
         };
         stompClient.send('/app/message', {}, JSON.stringify(chatMessage));
         setUserData({...userData, "content":""});
@@ -187,15 +208,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
   if (error2) return <div>'Error..</div>
 
   if ((data1 != undefined) && (data2 != undefined)) {
-    if(data2.length == 0) {
-        let MemberList: JSX.Element[];
-        MemberList = data1.map((Member: ClubMemberItem) => (
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}} key={Member.user_id}>
-              <UserImg />
-              <MemberName>{Member.user_id}</MemberName>
-          </div>
-        ))
-      
+    if(data2.chatData.length == 0) {
   
         return(
           <Container>
@@ -207,8 +220,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                     </LogoTitle>
                   </Logo>
                   <ContentTitle style={{color: "white"}}>{club_name} 동아리원 목록</ContentTitle>
-                  <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                      <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", paddingTop: "20px"}}>{MemberList}</div>
+                  <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                      <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", paddingTop: "20px"}}>
+                      {data1 && data1.contents.map((Member: ClubMemberItem) => {
+            return (
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}} key={Member.user_id}>
+                <UserImg />
+                <MemberName>{Member.user_id}</MemberName>
+            </div>
+            )
+          })}
+                        </div>
                   </ScrollContainer>
                   <WrapUserStatus>
                       <UserProfile>
@@ -230,7 +252,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
               <div style={{width: "80vw", height: "100vh", paddingLeft: "20vw", backgroundColor: "#36393F", position: "absolute", zIndex: "3", display: "flex", justifyContent: "space-between", flexDirection: "column"}}>
                   <div style={{height: "90vh"}}>
                       <div style={{backgroundColor: "#202225", fontSize: "1.5rem", padding: "10px", textAlign: "left", color: "gray"}}># {club_name} 채팅방</div>
-                      <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                      <ScrollContainer style={{ height: '85vh' }} horizontal={false}>
                             <div style={{color: "#878A8F", paddingTop: "30px"}}>채팅 내역이 없습니다.</div>
                       </ScrollContainer>
                   </div>
@@ -247,7 +269,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                           <p style={{fontWeight: "bold", borderBottom: "1px solid black"}}>공지</p>
                           <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>사진</p>
                       </div>
-                      <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                      <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
                         <div style={{
                         width: '300px',
                         borderRadius: '5px',
@@ -330,7 +352,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                           <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>공지</p>
                           <p style={{fontWeight: "bold", borderBottom: "1px solid black"}}>사진</p>
                       </div>
-                      <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                      <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
                         <div
                             style={{
                             width: '300px',
@@ -450,24 +472,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
     }
 
     else {
-        let MemberList: JSX.Element[];
-      MemberList = data1.map((Member: ClubMemberItem) => (
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}} key={Member.user_id}>
-            <UserImg />
-            <MemberName>{Member.user_id}</MemberName>
-        </div>
-      ))
-    
+    const userID = sessionStorage.getItem('id') as string;
 
     let ChatList: JSX.Element[];
-        ChatList = data2.map((Chat: ChatContent) => (
+        ChatList = data2.chatData.map((Chat: ChatContent) => (
             <div key={Chat.id} style={{padding: "10px"}}>
-                {Chat.userName !== userData.userName && 
+                {Chat.userName !== userID && 
                 <div style={{display: "flex", flexDirection: "column", gap: "5px"}}>
                     <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>{Chat.userName}</div>
                     <div style={{textAlign: "left", color: "#878A8F"}}>{Chat.content}</div>
                 </div>}
-                {Chat.userName == userData.userName && 
+                {Chat.userName == userID && 
                 <div style={{display: "flex", flexDirection: "column", gap: "5px"}}>
                     <div style={{textAlign: "left", color: "white", fontWeight: "bold"}}>{Chat.userName} [나]</div>
                     <div style={{textAlign: "left", color: "#878A8F"}}>{Chat.content}</div>
@@ -486,8 +501,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                   </LogoTitle>
                 </Logo>
                 <ContentTitle style={{color: "white"}}>{club_name} 동아리원 목록</ContentTitle>
-                <ScrollContainer style={{ height: '80vh' }} vertical={false}>
-                    <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", paddingTop: "20px"}}>{MemberList}</div>
+                <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
+                    <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", paddingTop: "20px"}}>
+                    {data1 && data1.contents.map((Member: ClubMemberItem) => {
+            return (
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center'}} key={Member.user_id}>
+                <UserImg />
+                <MemberName>{Member.user_id}</MemberName>
+            </div>
+            )
+          })}
+                        </div>
                 </ScrollContainer>
                 <WrapUserStatus>
                     <UserProfile>
@@ -509,7 +533,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
             <div style={{width: "80vw", height: "100vh", paddingLeft: "20vw", backgroundColor: "#36393F", position: "absolute", zIndex: "3", display: "flex", justifyContent: "space-between", flexDirection: "column"}}>
                 <div style={{height: "90vh"}}>
                     <div style={{backgroundColor: "#202225", fontSize: "1.5rem", padding: "10px", textAlign: "left", color: "gray"}}># {club_name} 채팅방</div>
-                    <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                    <ScrollContainer style={{ height: '85vh' }} horizontal={false}>
                         <div>{ChatList}</div>
                     </ScrollContainer>
                 </div>
@@ -526,7 +550,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         <p style={{fontWeight: "bold"}}>공지</p>
                         <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>사진</p>
                     </div>
-                    <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                    <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
                         <div style={{
                         width: '300px',
                         borderRadius: '5px',
@@ -609,7 +633,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
                         <p style={{cursor: "pointer"}} onClick={() => {setNoticeIsOpen((e) => !e), setImgIsOpen((e) => !e)}}>공지</p>
                         <p style={{fontWeight: "bold"}}>사진</p>
                     </div>
-                    <ScrollContainer style={{ height: '80vh' }} vertical={false}>
+                    <ScrollContainer style={{ height: '80vh' }} horizontal={false}>
                         <div
                         style={{
                         width: '300px',
